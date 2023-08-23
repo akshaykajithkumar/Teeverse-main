@@ -1,16 +1,9 @@
 package domain
 
+// Admin represents an administrative user in the system.
 type Admin struct {
-	Id       int    `gorm:"primaryKey"`
-	Name     string `json:"name"`
-	Username string `json:"username"`
-	Email    string `gorm:"unique" json:"email"`
-	Phone    string `gorm:"unique" json:"phone"`
-	Password string `json:"password"`
-	Active   bool   `gorm:"default:true" json:"active"`
-}
-
-type AdminLogin struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
+	ID       uint   `json:"id" gorm:"unique;not null"`
+	Username string `json:"name" gorm:"validate:required"`
+	Email    string `json:"email" gorm:"validate:required"`
+	Password string `json:"password" gorm:"validate:required"`
 }

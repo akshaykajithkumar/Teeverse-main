@@ -3,67 +3,45 @@ package middleware
 import (
 	"fmt"
 	"net/http"
-	"strings"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
+	"github.com/spf13/viper"
 )
 
-func AuthorizationMiddleware(c *gin.Context) {
-	s := c.Request.Header.Get("Authorization")
+/*
+AdminAuthMiddleware is a middleware for admin authentication
 
-	token := strings.TrimPrefix(s, "Bearer ")
-
+Parameters:
+- c: Gin Context.
+*/
+func AdminAuthMiddleware(c *gin.Context) {
+	token, _ := c.Cookie("Authorization")
+	fmt.Println("Token::", token)
+	fmt.Println(token)
 	if err := validateToken(token); err != nil {
 		c.AbortWithStatus(http.StatusUnauthorized)
 		return
 	}
+	c.Next()
 }
 
+/*
+validateToken is for decrypting a jwt token using HMAC256 algorithm
+
+Parameters:
+- c: Gin Context.
+*/
 func validateToken(token string) error {
+	fmt.Println("Token validating.........")
 	_, err := jwt.Parse(token, func(t *jwt.Token) (interface{}, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", t.Header["alg"])
 		}
-
-		return []byte("secret"), nil
+		secret := viper.GetString("KEY")
+		//secret := os.Getenv("KEY")
+		return []byte(secret), nil
 	})
 
 	return err
-}
-
-func LoginHandler(c *gin.Context) {
-	// implement login logic here
-	// user := c.PostForm("user")
-	// pass := c.PostForm("pass")
-
-	// // Throws Unauthorized error
-	// if user != "john" || pass != "lark" {
-	// 	return c.AbortWithStatus(http.StatusUnauthorized)
-	// }
-
-	// Create the Claims
-	// claims := jwt.MapClaims{
-	// 	"name":  "John Lark",
-	// 	"admin": true,
-	// 	"exp":   time.Now().Add(time.Hour * 72).Unix(),
-	// }
-
-	// Create token
-	// token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &jwt.StandardClaims{
-		ExpiresAt: time.Now().Add(time.Hour * 72).Unix(),
-	})
-
-	ss, err := token.SignedString([]byte("secret"))
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"token": ss,
-	})
 }

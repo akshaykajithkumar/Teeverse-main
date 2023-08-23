@@ -1,26 +1,28 @@
 package main
 
 import (
+	"Teeverse/cmd/api/docs"
+	"Teeverse/pkg/config"
+	di "Teeverse/pkg/di"
 	"log"
-
-	"github.com/go-playground/validator/v10"
-	config "github.com/thnkrn/go-gin-clean-arch/pkg/config"
-	di "github.com/thnkrn/go-gin-clean-arch/pkg/di"
 )
 
 func main() {
+	docs.SwaggerInfo.Title = "Teeverse"
+	docs.SwaggerInfo.Description = "universal tshirts "
+	docs.SwaggerInfo.Version = "1.0"
+	docs.SwaggerInfo.Host = "localhost:1243"
+	docs.SwaggerInfo.BasePath = ""
+	docs.SwaggerInfo.Schemes = []string{"http"}
 	config, configErr := config.LoadConfig()
 	if configErr != nil {
 		log.Fatal("cannot load config: ", configErr)
 	}
 
-	server, Err := di.InitializeAPI(config)
-	if Err != nil {
-		log.Fatal("cannot start server: ", Err)
+	server, diErr := di.InitializeAPI(config)
+	if diErr != nil {
+		log.Fatal("cannot start server: ", diErr)
 	} else {
 		server.Start()
-	}
-	if err := validator.New().Struct(&config); err != nil {
-		return config, err
 	}
 }

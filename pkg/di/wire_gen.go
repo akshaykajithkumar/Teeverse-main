@@ -7,12 +7,12 @@
 package di
 
 import (
-	"github.com/thnkrn/go-gin-clean-arch/pkg/api"
-	"github.com/thnkrn/go-gin-clean-arch/pkg/api/handler"
-	"github.com/thnkrn/go-gin-clean-arch/pkg/config"
-	"github.com/thnkrn/go-gin-clean-arch/pkg/db"
-	"github.com/thnkrn/go-gin-clean-arch/pkg/repository"
-	"github.com/thnkrn/go-gin-clean-arch/pkg/usecase"
+	"Teeverse/pkg/api"
+	"Teeverse/pkg/api/handler"
+	"Teeverse/pkg/config"
+	"Teeverse/pkg/db"
+	"Teeverse/pkg/repository"
+	"Teeverse/pkg/usecase"
 )
 
 // Injectors from wire.go:
@@ -22,9 +22,47 @@ func InitializeAPI(cfg config.Config) (*http.ServerHTTP, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	categoryRepository:=repository.NewCategoryRepository(gormDB)
+	categoryUseCase:=usecase.NewCategoryUseCase(categoryRepository)
+	categoryHandler:=handler.NewCategoryHandler(categoryUseCase)
+
+	inventoryRepository:=repository.NewInventoryRepository(gormDB)
+	inventoryUseCase:=usecase.NewInventoryUseCase(inventoryRepository)
+	inventoryHandler:=handler.NewInventoryHandler(inventoryUseCase)
+	
+	wishlistRepository:=repository.NewWishlistRepository(gormDB)
+	wishlistUseCase :=usecase.NewWishlistUseCase(wishlistRepository)
+	wishlistHandler:=handler.NewWishlistHandler(wishlistUseCase)	
+	
+
+	otpRepository:=repository.NewOtpRepository(gormDB)
+	otpUseCase:=usecase.NewOtpUseCase(cfg,otpRepository)
+	otpHandler:=handler.NewOtpHandler(otpUseCase)
+
 	userRepository := repository.NewUserRepository(gormDB)
 	userUseCase := usecase.NewUserUseCase(userRepository)
 	userHandler := handler.NewUserHandler(userUseCase)
-	serverHTTP := http.NewServerHTTP(userHandler)
+
+	paymentRepository:=repository.NewPaymentRepository(gormDB)
+	paymentUseCase:=usecase.NewPaymentUseCase(paymentRepository,userRepository)
+	paymentHandler:=handler.NewPaymentHandler(paymentUseCase)
+	
+	cartRepository:=repository.NewCartRepository(gormDB)
+	cartUseCase:=usecase.NewCartUseCase(cartRepository,inventoryRepository,userUseCase,paymentUseCase)
+	cartHandler:=handler.NewCartHandler(cartUseCase)
+
+	orderRepository:=repository.NewOrderRepository(gormDB)
+	orderUseCase:=usecase.NewOrderUseCase(orderRepository,userUseCase)
+	orderHandler:=handler.NewOrderHandler(orderUseCase)
+
+
+	adminRepository:=repository.NewAdminRepository(gormDB)
+	adminUseCase:=usecase.NewAdminUseCase(adminRepository)
+	adminHandler:=handler.NewAdminHandler(adminUseCase)
+
+
+	serverHTTP := http.NewServerHTTP(categoryHandler,inventoryHandler,userHandler,otpHandler,adminHandler,cartHandler,orderHandler,paymentHandler,wishlistHandler)
+
 	return serverHTTP, nil
 }

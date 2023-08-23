@@ -1,14 +1,37 @@
 package interfaces
 
 import (
-	"context"
-
-	"github.com/thnkrn/go-gin-clean-arch/pkg/domain"
+	"Teeverse/pkg/domain"
+	"Teeverse/pkg/utils/models"
 )
 
 type UserRepository interface {
-	FindAll(ctx context.Context) ([]domain.Users, error)
-	FindByID(ctx context.Context, id uint) (domain.Users, error)
-	Save(ctx context.Context, user domain.Users) (domain.Users, error)
-	Delete(ctx context.Context, user domain.Users) error
+	CheckUserAvailability(email string) bool
+	UserBlockStatus(email string) (bool, error)
+	FindUserByEmail(user models.UserLogin) (models.UserResponse, error)
+	SignUp(user models.UserDetails) (models.UserResponse, error)
+	AddAddress(id int, address models.AddAddress, result bool) error
+	GetAddresses(id int) ([]domain.Address, error)
+	CheckIfFirstAddress(id int) bool
+	GetUserDetails(id int) (models.UserResponse, error)
+	FindUserIDByOrderID(orderID int) (int, error)
+	ChangePassword(id int, password string) error
+	GetPassword(id int) (string, error)
+	FindIdFromPhone(phone string) (int, error)
+	EditName(id int, name string) error
+	EditEmail(id int, email string) error
+	EditPhone(id int, phone string) error
+
+	//GetCart(id int) ([]models.GetCart, error)
+	RemoveFromCart(id int, inventoryID int) error
+	ClearCart(cartID int) error
+	UpdateQuantityAdd(id, inv_id int) error
+	UpdateQuantityLess(id, inv_id int) error
+
+	GetCartID(id int) (int, error)
+	GetProductsInCart(cart_id int) ([]int, error)
+	FindProductNames(inventory_id int) (string, error)
+	FindCartQuantity(cart_id, inventory_id int) (int, error)
+	FindPrice(inventory_id int) (float64, error)
+	FindCategory(inventory_id int) (int, error)
 }
