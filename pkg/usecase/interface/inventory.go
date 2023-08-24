@@ -6,7 +6,7 @@ import (
 
 type InventoryUseCase interface {
 	AddInventory(inventory models.Inventory, image string) (models.InventoryResponse, error)
-	UpdateInventory(ProductID int, Stock int) (models.InventoryResponse, error)
+	UpdateInventory(invID int, invData models.UpdateInventory) (models.Inventory, error)
 	DeleteInventory(id string) error
 
 	ShowIndividualProducts(s string) (models.Inventory, error)

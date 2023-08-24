@@ -102,6 +102,19 @@ definitions:
       new:
         type: string
     type: object
+  models.UpdateInventory:
+    properties:
+      category_id:
+        type: integer
+      description:
+        type: string
+      price:
+        type: number
+      productName:
+        type: string
+      stock:
+        type: integer
+    type: object
   models.UserDetails:
     properties:
       confirmpassword:
@@ -392,6 +405,66 @@ paths:
       security:
       - Bearer: []
       summary: Add Inventory
+      tags:
+      - Admin
+  /admin/inventories/delete:
+    delete:
+      consumes:
+      - application/json
+      description: Admin can delete a product
+      parameters:
+      - description: id
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - Bearer: []
+      summary: Delete Inventory
+      tags:
+      - Admin
+  /admin/inventories/update:
+    patch:
+      consumes:
+      - application/json
+      description: Admin can update stock of the inventories
+      parameters:
+      - description: id
+        in: query
+        name: id
+        required: true
+        type: string
+      - description: Update Inventory
+        in: body
+        name: updateinventory
+        required: true
+        schema:
+          $ref: '#/definitions/models.UpdateInventory'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - Bearer: []
+      summary: Update Stock
       tags:
       - Admin
   /admin/offers/create:
@@ -794,6 +867,38 @@ paths:
       summary: UnBlock an existing user
       tags:
       - Admin
+  /products:
+    get:
+      consumes:
+      - application/json
+      description: client can view the list of available products
+      parameters:
+      - description: page
+        in: query
+        name: page
+        required: true
+        type: string
+      - description: limit
+        in: query
+        name: limit
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - Bearer: []
+      summary: List Products
+      tags:
+      - Products
   /products/category:
     get:
       consumes:
@@ -828,6 +933,33 @@ paths:
           schema:
             $ref: '#/definitions/response.Response'
       summary: filter Products by category
+      tags:
+      - Products
+  /products/details:
+    get:
+      consumes:
+      - application/json
+      description: client can view the details of the product
+      parameters:
+      - description: Inventory ID
+        in: query
+        name: inventoryID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - Bearer: []
+      summary: Show Product Details
       tags:
       - Products
   /products/search:

@@ -20,7 +20,7 @@ type Inventory struct {
 	Price       float64 `json:"price"`
 }
 
-type NewInventory struct {
+type UpdateInventory struct {
 	CategoryID  int     `json:"category_id"`
 	ProductName string  `json:"productName"`
 	Description string  `json:"description"`

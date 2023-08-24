@@ -45,28 +45,46 @@ func (i *inventoryRepository) CheckInventory(pid int) (bool, error) {
 	return true, err
 }
 
-func (i *inventoryRepository) UpdateInventory(pid int, stock int) (models.InventoryResponse, error) {
+func (i *inventoryRepository) UpdateInventory(pid int, invData models.UpdateInventory) (models.Inventory, error) {
 
 	// Check the database connection
 	if i.DB == nil {
-		return models.InventoryResponse{}, errors.New("database connection is nil")
+		return models.Inventory{}, errors.New("database connection is nil")
 	}
 
-	// Update the
-	if err := i.DB.Exec("UPDATE inventories SET stock = stock + ? WHERE id= ?", stock, pid).Error; err != nil {
-		return models.InventoryResponse{}, err
+	if invData.CategoryID != 0 {
+		if err := i.DB.Exec("UPDATE inventories SET category_id = ? WHERE id= ?", invData.CategoryID, pid).Error; err != nil {
+			return models.Inventory{}, err
+		}
+	}
+	if invData.ProductName != "" {
+		if err := i.DB.Exec("UPDATE inventories SET product_name = ? WHERE id= ?", invData.ProductName, pid).Error; err != nil {
+			return models.Inventory{}, err
+		}
+	}
+	if invData.Description != "" {
+		if err := i.DB.Exec("UPDATE inventories SET description = ? WHERE id= ?", invData.Description, pid).Error; err != nil {
+			return models.Inventory{}, err
+		}
+	}
+	if invData.Stock != 0 {
+		if err := i.DB.Exec("UPDATE inventories SET stock =  ? WHERE id= ?", invData.Stock, pid).Error; err != nil {
+			return models.Inventory{}, err
+		}
 	}
 
+	if invData.Price != 0 {
+		if err := i.DB.Exec("UPDATE inventories SET price =  ? WHERE id= ?", invData.Price, pid).Error; err != nil {
+			return models.Inventory{}, err
+		}
+	}
 	// Retrieve the update
-	var newdetails models.InventoryResponse
-	var newstock int
-	if err := i.DB.Raw("SELECT stock FROM inventories WHERE id=?", pid).Scan(&newstock).Error; err != nil {
-		return models.InventoryResponse{}, err
+	var inventory models.Inventory
+	if err := i.DB.Raw("SELECT * FROM inventories WHERE id=?", pid).Scan(&inventory).Error; err != nil {
+		return models.Inventory{}, err
 	}
-	newdetails.ProductID = pid
-	newdetails.Stock = newstock
 
-	return newdetails, nil
+	return inventory, nil
 }
 
 func (i *inventoryRepository) DeleteInventory(inventoryID string) error {

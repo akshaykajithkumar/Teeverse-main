@@ -29,24 +29,24 @@ func (i *inventoryUseCase) AddInventory(inventory models.Inventory, image string
 
 }
 
-func (i *inventoryUseCase) UpdateInventory(pid int, stock int) (models.InventoryResponse, error) {
+func (i *inventoryUseCase) UpdateInventory(invID int, invData models.UpdateInventory) (models.Inventory, error) {
 
-	result, err := i.repository.CheckInventory(pid)
+	result, err := i.repository.CheckInventory(invID)
 	if err != nil {
 
-		return models.InventoryResponse{}, err
+		return models.Inventory{}, err
 	}
 
 	if !result {
-		return models.InventoryResponse{}, errors.New("there is no inventory as you mentioned")
+		return models.Inventory{}, errors.New("there is no inventory as you mentioned")
 	}
 
-	newcat, err := i.repository.UpdateInventory(pid, stock)
+	newinv, err := i.repository.UpdateInventory(invID, invData)
 	if err != nil {
-		return models.InventoryResponse{}, err
+		return models.Inventory{}, err
 	}
 
-	return newcat, err
+	return newinv, err
 }
 
 func (i *inventoryUseCase) DeleteInventory(inventoryID string) error {
