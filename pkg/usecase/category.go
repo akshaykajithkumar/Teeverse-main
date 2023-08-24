@@ -17,7 +17,7 @@ func NewCategoryUseCase(repo interfaces.CategoryRepository) services.CategoryUse
 	}
 }
 
-func (Cat *categoryUseCase) AddCategory(category domain.Category) (domain.Category, error) {
+func (Cat *categoryUseCase) AddCategory(category string) (domain.Category, error) {
 
 	productResponse, err := Cat.repository.AddCategory(category)
 
@@ -56,4 +56,12 @@ func (Cat *categoryUseCase) DeleteCategory(categoryID string) error {
 	}
 	return nil
 
+}
+
+func (Cat *categoryUseCase) GetCategories(page, limit int) ([]domain.Category, error) {
+	categories, err := Cat.repository.GetCategories(page, limit)
+	if err != nil {
+		return []domain.Category{}, err
+	}
+	return categories, nil
 }

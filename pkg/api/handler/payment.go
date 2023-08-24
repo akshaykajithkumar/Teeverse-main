@@ -103,7 +103,7 @@ func (p *PaymentHandler) MakePaymentRazorPay(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, errorRes)
 		return
 	}
-	fmt.Println(orderDetail)
+
 	c.HTML(http.StatusOK, "razorpay.html", orderDetail)
 }
 
@@ -112,7 +112,7 @@ func (p *PaymentHandler) VerifyPayment(c *gin.Context) {
 	orderID := c.Query("order_id")
 	paymentID := c.Query("payment_id")
 	razorID := c.Query("razor_id")
-	fmt.Println(orderID, paymentID, razorID)
+
 	err := p.paymentUseCase.VerifyPayment(paymentID, razorID, orderID)
 	if err != nil {
 		errorRes := response.ClientResponse(http.StatusInternalServerError, "could not update payment details", nil, err.Error())

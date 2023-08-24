@@ -13,10 +13,11 @@ type Config struct {
 	ACCOUNTSID string `mapstructure:"DB_ACCOUNTSID"`
 	SERVICESID string `mapstructure:"DB_SERVICESID"`
 	AUTHTOKEN  string `mapstructure:"DB_AUTHTOKEN"`
+	UNIDOCKEY  string `mapstructure:"UNIDOC_LICENSE_API_KEY"`
 }
 
 var envs = []string{
-	"DB_HOST", "DB_NAME", "DB_USER", "DB_PORT", "DB_PASSWORD", "DB_ACCOUNTSID", "DB_SERVICESID", "DB_AUTHTOKEN",
+	"DB_HOST", "DB_NAME", "DB_USER", "DB_PORT", "DB_PASSWORD", "DB_ACCOUNTSID", "DB_SERVICESID", "DB_AUTHTOKEN", "UNIDOC_LICENSE_API_KEY",
 }
 
 func LoadConfig() (Config, error) {

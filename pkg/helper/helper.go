@@ -199,3 +199,26 @@ func GetUserID(c *gin.Context) (int, error) {
 
 	return userID, nil
 }
+func FindMostBoughtProduct(products []domain.ProductReport) []int {
+
+	productMap := make(map[int]int)
+
+	for _, v := range products {
+		productMap[v.InventoryID] += v.Quantity
+	}
+
+	maxQty := 0
+	for _, v := range productMap {
+		if v > maxQty {
+			maxQty = v
+		}
+	}
+
+	var bestSellers []int
+	for k, v := range productMap {
+		if v == maxQty {
+			bestSellers = append(bestSellers, k)
+		}
+	}
+	return bestSellers
+}

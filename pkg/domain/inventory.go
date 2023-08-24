@@ -6,6 +6,7 @@ type Inventory struct {
 	CategoryID  int      `json:"category_id"`
 	Category    Category `json:"-" gorm:"foreignkey:CategoryID;constraint:OnDelete:CASCADE"`
 	ProductName string   `json:"product_name"`
+	Description string   `json:"description"`
 	Image       string   `json:"image"`
 	Stock       int      `json:"stock"`
 	Price       float64  `json:"price"`

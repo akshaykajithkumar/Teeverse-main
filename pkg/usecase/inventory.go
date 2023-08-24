@@ -90,3 +90,14 @@ func (i *inventoryUseCase) SearchProducts(key string, page, limit int) ([]models
 	return productDetails, nil
 
 }
+
+func (i *inventoryUseCase) GetCategoryProducts(catID int, page, limit int) ([]models.Inventory, error) {
+
+	productDetails, err := i.repository.GetCategoryProducts(catID, page, limit)
+	if err != nil {
+		return []models.Inventory{}, err
+	}
+
+	return productDetails, nil
+
+}

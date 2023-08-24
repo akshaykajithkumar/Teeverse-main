@@ -267,11 +267,18 @@ func (ad *userDatabase) GetCartID(id int) (int, error) {
 
 }
 
-func (ad *userDatabase) GetProductsInCart(cart_id int) ([]int, error) {
+func (ad *userDatabase) GetProductsInCart(cart_id, page, limit int) ([]int, error) {
 
+	if page == 0 {
+		page = 1
+	}
+	if limit == 0 {
+		limit = 10
+	}
+	offset := (page - 1) * limit
 	var cart_products []int
 
-	if err := ad.DB.Raw("select inventory_id from line_items where cart_id=?", cart_id).Scan(&cart_products).Error; err != nil {
+	if err := ad.DB.Raw("select inventory_id from line_items where cart_id=? limit ? offset ?", cart_id, limit, offset).Scan(&cart_products).Error; err != nil {
 		return []int{}, err
 	}
 

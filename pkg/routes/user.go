@@ -22,15 +22,20 @@ func UserRoutes(engine *gin.RouterGroup, userHandler *handler.UserHandler, otpHa
 			payment.GET("/update_status", paymentHandler.VerifyPayment)
 		}
 
-		search := engine.Group("/search")
-		{
-			search.POST("/", inventoryHandler.SearchProducts)
-		}
+		// search := engine.Group("/search")
+		// {
+		// 	search.POST("/", inventoryHandler.SearchProducts)
+		// }
+
+		// filter := engine.Group("/filter")
+		// {
+		// 	filter.GET("/category", inventoryHandler.GetCategoryProducts)
+		// }
 
 		home := engine.Group("/home")
 		{
-			home.GET("/products", inventoryHandler.ListProducts)
-			home.GET("/products/details", inventoryHandler.ShowIndividualProducts)
+			//home.GET("/products", inventoryHandler.ListProducts)
+			//home.GET("/products/details", inventoryHandler.ShowIndividualProducts)
 			home.POST("/add-to-cart", cartHandler.AddToCart)
 			home.POST("/add-to-wishlist", wishlistHandler.AddToWishlist)
 
@@ -56,6 +61,7 @@ func UserRoutes(engine *gin.RouterGroup, userHandler *handler.UserHandler, otpHa
 			{
 				orders.GET("", orderHandler.GetOrders)
 				orders.DELETE("", orderHandler.CancelOrder)
+				orders.PUT("/return", orderHandler.ReturnOrder)
 
 			}
 		}
@@ -79,6 +85,7 @@ func UserRoutes(engine *gin.RouterGroup, userHandler *handler.UserHandler, otpHa
 		{
 			checkout.GET("", cartHandler.CheckOut)
 			checkout.POST("/order", orderHandler.OrderItemsFromCart)
+			checkout.GET("/order/download-invoice", orderHandler.DownloadInvoice)
 		}
 
 	}

@@ -30,13 +30,15 @@ Parameters:
 Returns:
 - *ServerHTTP: A pointer to the newly created ServerHTTP instance.
 */
-func NewServerHTTP(categoryHandler *handler.CategoryHandler, inventoryHandler *handler.InventoryHandler, userHandler *handler.UserHandler, otpHandler *handler.OtpHandler, adminHandler *handler.AdminHandler, cartHandler *handler.CartHandler, orderHandler *handler.OrderHandler, paymentHandler *handler.PaymentHandler, wishlistHandler *handler.WishlistHandler) *ServerHTTP {
+func NewServerHTTP(categoryHandler *handler.CategoryHandler, inventoryHandler *handler.InventoryHandler, userHandler *handler.UserHandler, otpHandler *handler.OtpHandler, adminHandler *handler.AdminHandler, cartHandler *handler.CartHandler, orderHandler *handler.OrderHandler, paymentHandler *handler.PaymentHandler, wishlistHandler *handler.WishlistHandler, offerHandler *handler.OfferHandler, couponHandler *handler.CouponHandler) *ServerHTTP {
 	engine := gin.New()
 	engine.Use(gin.Logger())
 	engine.LoadHTMLGlob("pkg/templates/*.html")
 	engine.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
+
 	routes.UserRoutes(engine.Group("/users"), userHandler, otpHandler, inventoryHandler, cartHandler, orderHandler, paymentHandler, wishlistHandler)
-	routes.AdminRoutes(engine.Group("/admin"), adminHandler, userHandler, categoryHandler, inventoryHandler, orderHandler, paymentHandler)
+	routes.AdminRoutes(engine.Group("/admin"), adminHandler /*userHandler,*/, categoryHandler, inventoryHandler, orderHandler, paymentHandler, offerHandler, couponHandler)
+	routes.InventoryRoutes(engine.Group("/products"), inventoryHandler)
 
 	return &ServerHTTP{engine: engine}
 }
@@ -46,4 +48,8 @@ Start starts the HTTP server and listens on port 1243.
 */
 func (sh *ServerHTTP) Start() {
 	sh.engine.Run(":1243")
+	//err := http.ListenAndServeTLS(":443", "/etc/letsencrypt/live/seventysstore.online/fullchain.pem", "/etc/letsencrypt/live/seventysstore.online/privkey.pem", nil)
+	// if err != nil {
+	//   log.Fatal("ListenAndServeTLS: ", err)
+	//}
 }

@@ -45,8 +45,9 @@ func (ad *AdminHandler) LoginHandler(c *gin.Context) { // login handler for the 
 		c.JSON(http.StatusBadRequest, errRes)
 		return
 	}
-
-	c.SetCookie("Authorization", admin.Token, 3600, "", "", true, true)
+	c.SetSameSite(http.SameSiteLaxMode)
+	//c.SetCookie("Authorization", admin.Token, 3600, "/", "teeverse.online", true, false)
+	c.SetCookie("Authorization", admin.Token, 3600, "/", "", true, false)
 
 	successRes := response.ClientResponse(http.StatusOK, "Admin authenticated successfully", admin, nil)
 	c.JSON(http.StatusOK, successRes)

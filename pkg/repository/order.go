@@ -20,11 +20,18 @@ func NewOrderRepository(db *gorm.DB) interfaces.OrderRepository {
 	}
 }
 
-func (o *orderRepository) GetOrders(id int) ([]domain.Order, error) {
+func (o *orderRepository) GetOrders(id, page, limit int) ([]domain.Order, error) {
 
+	if page == 0 {
+		page = 1
+	}
+	if limit == 0 {
+		limit = 10
+	}
+	offset := (page - 1) * limit
 	var orders []domain.Order
 
-	if err := o.DB.Raw("select * from orders where user_id=?", id).Scan(&orders).Error; err != nil {
+	if err := o.DB.Raw("select * from orders where user_id=? limit ? offset ?", id, limit, offset).Scan(&orders).Error; err != nil {
 		return []domain.Order{}, err
 	}
 	return orders, nil
@@ -38,6 +45,16 @@ func (o *orderRepository) GetOrdersInRange(startDate, endDate time.Time) ([]doma
 		return []domain.Order{}, err
 	}
 	return orders, nil
+}
+
+func (o *orderRepository) GetProductsQuantity() ([]domain.ProductReport, error) {
+
+	var products []domain.ProductReport
+
+	if err := o.DB.Raw("select inventory_id,quantity from order_items").Scan(&products).Error; err != nil {
+		return []domain.ProductReport{}, err
+	}
+	return products, nil
 }
 
 func (o *orderRepository) GetCart(id int) ([]models.GetCart, error) {
@@ -160,7 +177,7 @@ func (o *orderRepository) GetOrderDetail(orderID string) (domain.Order, error) {
 func (o *orderRepository) FindAmountFromOrderID(id int) (float64, error) {
 
 	var amount float64
-	err := o.DB.Raw("select final_price from orders where id = ?", id).Scan(&amount).Error
+	err := o.DB.Raw("select price from orders where id = ?", id).Scan(&amount).Error
 	if err != nil {
 		return 0, err
 	}
@@ -177,4 +194,25 @@ func (o *orderRepository) FindUserIdFromOrderID(id int) (int, error) {
 	}
 
 	return user_id, nil
+}
+
+func (i *orderRepository) ReturnOrder(orderID int) error {
+
+	if err := i.DB.Exec("update orders set order_status='RETURNED' where id=$1", orderID).Error; err != nil {
+		return err
+	}
+
+	return nil
+
+}
+
+func (o *orderRepository) CheckIfTheOrderIsAlreadyReturned(orderID int) (string, error) {
+
+	var status string
+	err := o.DB.Raw("select order_status from orders where id = ?", orderID).Scan(&status).Error
+	if err != nil {
+		return "", err
+	}
+
+	return status, nil
 }

@@ -6,9 +6,15 @@ import (
 )
 
 type OrderUseCase interface {
-	GetOrders(id int) ([]domain.Order, error)
+	GetOrders(id, page, limit int) ([]domain.Order, error)
 	OrderItemsFromCart(userid int, order models.Order) (string, error)
 	CancelOrder(id int) error
 	EditOrderStatus(status string, id int) error
-	AdminOrders() (domain.AdminOrdersResponse, error)
+	AdminOrders(page, limit int) (domain.AdminOrdersResponse, error)
+	DailyOrders() (domain.SalesReport, error)
+	WeeklyOrders() (domain.SalesReport, error)
+	MonthlyOrders() (domain.SalesReport, error)
+	AnnualOrders() (domain.SalesReport, error)
+	CustomDateOrders(dates models.CustomDates) (domain.SalesReport, error)
+	ReturnOrder(id int) error
 }

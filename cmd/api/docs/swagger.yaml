@@ -1,10 +1,12 @@
 definitions:
-  domain.Category:
+  domain.Coupon:
     properties:
-      category:
-        type: string
-      id:
+      discount_rate:
         type: integer
+      name:
+        type: string
+      valid:
+        type: boolean
     type: object
   models.AddAddress:
     properties:
@@ -48,6 +50,20 @@ definitions:
       re_password:
         type: string
     type: object
+  models.CreateOffer:
+    properties:
+      categoryID:
+        type: integer
+      discount:
+        type: integer
+    type: object
+  models.CustomDates:
+    properties:
+      endDate:
+        type: string
+      startingDate:
+        type: string
+    type: object
   models.EditEmail:
     properties:
       email:
@@ -63,13 +79,6 @@ definitions:
       phone:
         type: string
     type: object
-  models.InventoryUpdate:
-    properties:
-      product_id:
-        type: integer
-      stock:
-        type: integer
-    type: object
   models.OTPData:
     properties:
       phone:
@@ -80,6 +89,8 @@ definitions:
   models.Order:
     properties:
       address_id:
+        type: integer
+      couponID:
         type: integer
       paymentID:
         type: integer
@@ -161,6 +172,38 @@ paths:
       summary: Admin Login
       tags:
       - Admin
+  /admin/category:
+    get:
+      consumes:
+      - application/json
+      description: Admin can view the list of  Categories
+      parameters:
+      - description: page
+        in: query
+        name: page
+        required: true
+        type: string
+      - description: limit
+        in: query
+        name: limit
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - Bearer: []
+      summary: List Categories
+      tags:
+      - Admin
   /admin/category/add:
     post:
       consumes:
@@ -168,11 +211,10 @@ paths:
       description: Admin can add new categories for products
       parameters:
       - description: category
-        in: body
+        in: query
         name: category
         required: true
-        schema:
-          $ref: '#/definitions/domain.Category'
+        type: string
       produces:
       - application/json
       responses:
@@ -244,37 +286,18 @@ paths:
       summary: Update Category
       tags:
       - Admin
-  /admin/inventories/add:
+  /admin/coupons/create:
     post:
       consumes:
-      - multipart/form-data
-      description: Admin can add new  products
+      - application/json
+      description: Admin can add new coupons
       parameters:
-      - description: category_id
-        in: formData
-        name: category_id
+      - description: coupon
+        in: body
+        name: coupon
         required: true
-        type: string
-      - description: product_name
-        in: formData
-        name: product_name
-        required: true
-        type: string
-      - description: price
-        in: formData
-        name: price
-        required: true
-        type: string
-      - description: stock
-        in: formData
-        name: stock
-        required: true
-        type: string
-      - description: image
-        in: formData
-        name: image
-        required: true
-        type: string
+        schema:
+          $ref: '#/definitions/domain.Coupon'
       produces:
       - application/json
       responses:
@@ -288,14 +311,15 @@ paths:
             $ref: '#/definitions/response.Response'
       security:
       - Bearer: []
-      summary: Add Inventory
+      summary: Add Coupon
       tags:
       - Admin
-  /admin/inventories/delete:
-    delete:
+  /admin/coupons/expire:
+    post:
       consumes:
       - application/json
-      description: Admin can delete a product
+      description: Admin can make the coupons as invalid so that users cannot use
+        that particular coupon
       parameters:
       - description: id
         in: query
@@ -315,21 +339,45 @@ paths:
             $ref: '#/definitions/response.Response'
       security:
       - Bearer: []
-      summary: Delete Inventory
+      summary: Make Coupon invalid
       tags:
       - Admin
-  /admin/inventories/update:
-    put:
+  /admin/inventories/add:
+    post:
       consumes:
-      - application/json
-      description: Admin can update stock of the inventories
+      - multipart/form-data
+      description: Admin can add new  products
       parameters:
-      - description: update stock
-        in: body
-        name: add-stock
+      - description: category_id
+        in: formData
+        name: category_id
         required: true
-        schema:
-          $ref: '#/definitions/models.InventoryUpdate'
+        type: string
+      - description: product_name
+        in: formData
+        name: product_name
+        required: true
+        type: string
+      - description: description
+        in: formData
+        name: description
+        required: true
+        type: string
+      - description: price
+        in: formData
+        name: price
+        required: true
+        type: string
+      - description: stock
+        in: formData
+        name: stock
+        required: true
+        type: string
+      - description: image
+        in: formData
+        name: image
+        required: true
+        type: file
       produces:
       - application/json
       responses:
@@ -343,12 +391,78 @@ paths:
             $ref: '#/definitions/response.Response'
       security:
       - Bearer: []
-      summary: Update Stock
+      summary: Add Inventory
+      tags:
+      - Admin
+  /admin/offers/create:
+    post:
+      consumes:
+      - application/json
+      description: Admin can add new  offers
+      parameters:
+      - description: Offer
+        in: body
+        name: offer
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateOffer'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - Bearer: []
+      summary: Add Offer
+      tags:
+      - Admin
+  /admin/offers/expire:
+    post:
+      consumes:
+      - application/json
+      description: Admin can add Expire  offers
+      parameters:
+      - description: Category ID
+        in: query
+        name: catID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - Bearer: []
+      summary: Expire Offer
       tags:
       - Admin
   /admin/orders:
     get:
       description: Admin can view the orders according to status
+      parameters:
+      - description: page
+        in: query
+        name: page
+        required: true
+        type: string
+      - description: limit
+        in: query
+        name: limit
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -460,6 +574,140 @@ paths:
       summary: Remove payment method
       tags:
       - Admin
+  /admin/products:
+    get:
+      consumes:
+      - application/json
+      description: client can view the list of available products
+      parameters:
+      - description: page
+        in: query
+        name: page
+        required: true
+        type: string
+      - description: limit
+        in: query
+        name: limit
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - Bearer: []
+      summary: List Products
+      tags:
+      - Admin
+  /admin/sales/annual:
+    get:
+      description: Admin can view the weekly sales Report
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - Bearer: []
+      summary: Admin Sales Report
+      tags:
+      - Admin
+  /admin/sales/custom:
+    post:
+      description: Admin can view the weekly sales Report
+      parameters:
+      - description: custom dates
+        in: body
+        name: customDates
+        required: true
+        schema:
+          $ref: '#/definitions/models.CustomDates'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - Bearer: []
+      summary: Admin Sales Report
+      tags:
+      - Admin
+  /admin/sales/daily:
+    get:
+      description: Admin can view the daily sales Report
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - Bearer: []
+      summary: Admin Sales Report
+      tags:
+      - Admin
+  /admin/sales/monthly:
+    get:
+      description: Admin can view the weekly sales Report
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - Bearer: []
+      summary: Admin Sales Report
+      tags:
+      - Admin
+  /admin/sales/weekly:
+    get:
+      description: Admin can view the weekly sales Report
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - Bearer: []
+      summary: Admin Sales Report
+      tags:
+      - Admin
   /admin/users/block:
     post:
       consumes:
@@ -546,9 +794,92 @@ paths:
       summary: UnBlock an existing user
       tags:
       - Admin
+  /products/category:
+    get:
+      consumes:
+      - application/json
+      description: client can filter with a category and get the list of  products
+        in the category
+      parameters:
+      - description: page
+        in: query
+        name: page
+        required: true
+        type: string
+      - description: limit
+        in: query
+        name: limit
+        required: true
+        type: string
+      - description: category ID
+        in: query
+        name: catID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: filter Products by category
+      tags:
+      - Products
+  /products/search:
+    get:
+      consumes:
+      - application/json
+      description: client can search with a key and get the list of  products similar
+        to that key
+      parameters:
+      - description: page
+        in: query
+        name: page
+        required: true
+        type: string
+      - description: limit
+        in: query
+        name: limit
+        required: true
+        type: string
+      - description: searchkey
+        in: query
+        name: searchkey
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: Search Products
+      tags:
+      - Products
   /users/cart:
     get:
       description: user can view their cart details
+      parameters:
+      - description: page
+        in: query
+        name: page
+        required: true
+        type: string
+      - description: limit
+        in: query
+        name: limit
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -691,6 +1022,21 @@ paths:
       summary: Order Now
       tags:
       - User
+  /users/check-out/order/download-invoice:
+    get:
+      description: Download the invoice PDF file
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: file
+      security:
+      - Bearer: []
+      summary: Download Invoice PDF
+      tags:
+      - User
   /users/home/add-to-cart:
     post:
       consumes:
@@ -743,65 +1089,6 @@ paths:
       security:
       - Bearer: []
       summary: Add To Wishlist
-      tags:
-      - User
-  /users/home/products:
-    get:
-      consumes:
-      - application/json
-      description: user can view the list of available products
-      parameters:
-      - description: page
-        in: query
-        name: page
-        required: true
-        type: string
-      - description: limit
-        in: query
-        name: limit
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/response.Response'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/response.Response'
-      security:
-      - Bearer: []
-      summary: List Products
-      tags:
-      - User
-  /users/home/products/details:
-    get:
-      consumes:
-      - application/json
-      description: user can view the details of the product
-      parameters:
-      - description: Inventory ID
-        in: query
-        name: inventoryID
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/response.Response'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/response.Response'
-      security:
-      - Bearer: []
-      summary: Show Product Details
       tags:
       - User
   /users/login:
@@ -1035,6 +1322,17 @@ paths:
       consumes:
       - application/json
       description: user can view the details of the orders
+      parameters:
+      - description: page
+        in: query
+        name: page
+        required: true
+        type: string
+      - description: limit
+        in: query
+        name: limit
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -1049,6 +1347,34 @@ paths:
       security:
       - Bearer: []
       summary: Get Orders
+      tags:
+      - User
+  /users/profile/orders/return:
+    put:
+      consumes:
+      - application/json
+      description: user can return the ordered products which is already delivered
+        and then get the amount fot that particular purchase back in their wallet
+      parameters:
+      - description: id
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - Bearer: []
+      summary: Return Order
       tags:
       - User
   /users/profile/security/change-password:
@@ -1077,42 +1403,6 @@ paths:
       security:
       - Bearer: []
       summary: Change Password
-      tags:
-      - User
-  /users/search:
-    post:
-      consumes:
-      - application/json
-      description: user can search with a key and get the list of  products similar
-        to that key
-      parameters:
-      - description: page
-        in: query
-        name: page
-        required: true
-        type: string
-      - description: limit
-        in: query
-        name: limit
-        required: true
-        type: string
-      - description: searchkey
-        in: query
-        name: searchkey
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/response.Response'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/response.Response'
-      summary: Search Products
       tags:
       - User
   /users/signup:

@@ -1,11 +1,11 @@
 package handler
 
 import (
-	"Teeverse/pkg/domain"
 	services "Teeverse/pkg/usecase/interface"
 	"Teeverse/pkg/utils/models"
 	"Teeverse/pkg/utils/response"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -25,21 +25,15 @@ func NewCategoryHandler(usecase services.CategoryUseCase) *CategoryHandler {
 // @Tags			Admin
 // @Accept			json
 // @Produce		    json
-// @Param			category	body	domain.Category	true	"category"
+// @Param			category	query	string	true	"category"
 // @Security		Bearer
 // @Success		200	{object}	response.Response{}
 // @Failure		500	{object}	response.Response{}
 // @Router			/admin/category/add [post]
 func (Cat *CategoryHandler) AddCategory(c *gin.Context) {
 
-	var category domain.Category
-	if err := c.BindJSON(&category); err != nil {
-		errorRes := response.ClientResponse(http.StatusBadRequest, "fields provided are in wrong format", nil, err.Error())
-		c.JSON(http.StatusBadRequest, errorRes)
-		return
-	}
-
-	CategoryResponse, err := Cat.CategoryUseCase.AddCategory(category)
+	cat := c.Query("category")
+	CategoryResponse, err := Cat.CategoryUseCase.AddCategory(cat)
 	if err != nil {
 		errorRes := response.ClientResponse(http.StatusBadRequest, "Could not add the Category", nil, err.Error())
 		c.JSON(http.StatusBadRequest, errorRes)
@@ -106,4 +100,40 @@ func (Cat *CategoryHandler) DeleteCategory(c *gin.Context) {
 	successRes := response.ClientResponse(http.StatusOK, "Successfully deleted the Category", nil, nil)
 	c.JSON(http.StatusOK, successRes)
 
+}
+
+// @Summary		List Categories
+// @Description	Admin can view the list of  Categories
+// @Tags			Admin
+// @Accept			json
+// @Produce		    json
+// @Param			page	query  string 	true	"page"
+// @Param			limit	query  string 	true	"limit"
+// @Security		Bearer
+// @Success		200	{object}	response.Response{}
+// @Failure		500	{object}	response.Response{}
+// @Router			/admin/category [get]
+func (cat *CategoryHandler) Categories(c *gin.Context) {
+	pageStr := c.Query("page")
+	page, err := strconv.Atoi(pageStr)
+	if err != nil {
+		errorRes := response.ClientResponse(http.StatusBadRequest, "page number not in right format", nil, err.Error())
+		c.JSON(http.StatusBadRequest, errorRes)
+		return
+	}
+	limitStr := c.Query("limit")
+	limit, err := strconv.Atoi(limitStr)
+	if err != nil {
+		errorRes := response.ClientResponse(http.StatusBadRequest, "page number not in right format", nil, err.Error())
+		c.JSON(http.StatusBadRequest, errorRes)
+		return
+	}
+	categories, err := cat.CategoryUseCase.GetCategories(page, limit)
+	if err != nil {
+		errorRes := response.ClientResponse(http.StatusBadRequest, "could not retrieve records", nil, err.Error())
+		c.JSON(http.StatusBadRequest, errorRes)
+		return
+	}
+	successRes := response.ClientResponse(http.StatusOK, "Successfully retrieved the categories", categories, nil)
+	c.JSON(http.StatusOK, successRes)
 }

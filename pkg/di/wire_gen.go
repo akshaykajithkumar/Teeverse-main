@@ -27,42 +27,49 @@ func InitializeAPI(cfg config.Config) (*http.ServerHTTP, error) {
 	categoryUseCase:=usecase.NewCategoryUseCase(categoryRepository)
 	categoryHandler:=handler.NewCategoryHandler(categoryUseCase)
 
+	offerRepository:=repository.NewOfferRepository(gormDB)
+	offerUseCase:=usecase.NewOfferUseCase(offerRepository)
+	OfferHandler:=handler.NewOfferHandler(offerUseCase)
+
+	couponRepository:=repository.NewCouponRepository(gormDB)
+	couponUseCase:=usecase.NewCouponUseCase(couponRepository)
+	couponHandler:=handler.NewCouponHandler(couponUseCase)
+
 	inventoryRepository:=repository.NewInventoryRepository(gormDB)
 	inventoryUseCase:=usecase.NewInventoryUseCase(inventoryRepository)
 	inventoryHandler:=handler.NewInventoryHandler(inventoryUseCase)
-	
+
 	wishlistRepository:=repository.NewWishlistRepository(gormDB)
 	wishlistUseCase :=usecase.NewWishlistUseCase(wishlistRepository)
 	wishlistHandler:=handler.NewWishlistHandler(wishlistUseCase)	
-	
 
 	otpRepository:=repository.NewOtpRepository(gormDB)
 	otpUseCase:=usecase.NewOtpUseCase(cfg,otpRepository)
 	otpHandler:=handler.NewOtpHandler(otpUseCase)
 
 	userRepository := repository.NewUserRepository(gormDB)
-	userUseCase := usecase.NewUserUseCase(userRepository)
+	userUseCase := usecase.NewUserUseCase(userRepository,offerRepository)
 	userHandler := handler.NewUserHandler(userUseCase)
 
 	paymentRepository:=repository.NewPaymentRepository(gormDB)
 	paymentUseCase:=usecase.NewPaymentUseCase(paymentRepository,userRepository)
 	paymentHandler:=handler.NewPaymentHandler(paymentUseCase)
-	
+
 	cartRepository:=repository.NewCartRepository(gormDB)
 	cartUseCase:=usecase.NewCartUseCase(cartRepository,inventoryRepository,userUseCase,paymentUseCase)
 	cartHandler:=handler.NewCartHandler(cartUseCase)
 
-	orderRepository:=repository.NewOrderRepository(gormDB)
-	orderUseCase:=usecase.NewOrderUseCase(orderRepository,userUseCase)
-	orderHandler:=handler.NewOrderHandler(orderUseCase)
+	walletRepository:=repository.NewWalletRepositoy(gormDB)
 
+	orderRepository:=repository.NewOrderRepository(gormDB)
+	orderUseCase:=usecase.NewOrderUseCase(orderRepository,userUseCase,walletRepository,couponRepository)
+	orderHandler:=handler.NewOrderHandler(orderUseCase)
 
 	adminRepository:=repository.NewAdminRepository(gormDB)
 	adminUseCase:=usecase.NewAdminUseCase(adminRepository)
 	adminHandler:=handler.NewAdminHandler(adminUseCase)
 
-
-	serverHTTP := http.NewServerHTTP(categoryHandler,inventoryHandler,userHandler,otpHandler,adminHandler,cartHandler,orderHandler,paymentHandler,wishlistHandler)
+	serverHTTP := http.NewServerHTTP(categoryHandler,inventoryHandler,userHandler,otpHandler,adminHandler,cartHandler,orderHandler,paymentHandler,wishlistHandler,OfferHandler,couponHandler)
 
 	return serverHTTP, nil
 }

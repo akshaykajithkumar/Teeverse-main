@@ -62,8 +62,8 @@ func (i *cartUseCase) CheckOut(id int) (models.CheckOut, error) {
 	if err != nil {
 		return models.CheckOut{}, err
 	}
-
-	products, err := i.userUseCase.GetCart(id)
+	//cartchange
+	products, err := i.userUseCase.GetCart(id, 0, 0)
 	if err != nil {
 		return models.CheckOut{}, err
 	}
@@ -75,7 +75,7 @@ func (i *cartUseCase) CheckOut(id int) (models.CheckOut, error) {
 
 	var price float64
 	for _, v := range products {
-		price = price + v.Total
+		price = price + v.DiscountedPrice
 	}
 
 	var checkout models.CheckOut

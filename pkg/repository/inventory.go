@@ -20,14 +20,12 @@ func NewInventoryRepository(DB *gorm.DB) interfaces.InventoryRepository {
 }
 
 func (i *inventoryRepository) AddInventory(inventory models.Inventory, url string) (models.InventoryResponse, error) {
-
-	query := `
-    INSERT INTO inventories (category_id, product_name, stock, price, image)
-    VALUES (?, ?, ?, ?, ?);
-    `
-	i.DB.Exec(query, inventory.CategoryID, inventory.ProductName, inventory.Stock, inventory.Price, url)
-
 	var inventoryResponse models.InventoryResponse
+	query := `
+    INSERT INTO inventories (category_id, product_name,description, stock, price, image)
+    VALUES (?, ?, ?, ?, ?,?) RETURNING id,stock;
+    `
+	i.DB.Raw(query, inventory.CategoryID, inventory.ProductName, inventory.Description, inventory.Stock, inventory.Price, url).Scan(&inventoryResponse)
 
 	return inventoryResponse, nil
 
@@ -120,7 +118,7 @@ func (ad *inventoryRepository) ListProducts(page int, limit int) ([]models.Inven
 	offset := (page - 1) * limit
 	var productDetails []models.Inventory
 
-	if err := ad.DB.Raw("select id,category_id,product_name,stock,price,image from inventories limit ? offset ?", limit, offset).Scan(&productDetails).Error; err != nil {
+	if err := ad.DB.Raw("select id,category_id,product_name,description,stock,price,image from inventories limit ? offset ?", limit, offset).Scan(&productDetails).Error; err != nil {
 		return []models.Inventory{}, err
 	}
 
@@ -158,12 +156,37 @@ func (ad *inventoryRepository) SearchProducts(key string, page, limit int) ([]mo
 
 	query := `
 		SELECT *
-		FROM inventories inventories 
-		WHERE product_name LIKE '%' || ? || '%'
+		FROM inventories 
+		WHERE product_name ILIKE '%' || ? || '%' 
+		OR description ILIKE '%' || ? || '%'
 		limit ? offset ?
 	`
 
-	if err := ad.DB.Raw(query, key, limit, offset).Scan(&productDetails).Error; err != nil {
+	if err := ad.DB.Raw(query, key, key, limit, offset).Scan(&productDetails).Error; err != nil {
+		return []models.Inventory{}, err
+	}
+
+	return productDetails, nil
+}
+
+func (ad *inventoryRepository) GetCategoryProducts(catID int, page, limit int) ([]models.Inventory, error) {
+	if page == 0 {
+		page = 1
+	}
+	if limit == 0 {
+		limit = 10
+	}
+	offset := (page - 1) * limit
+	var productDetails []models.Inventory
+
+	query := `
+		SELECT *
+		FROM inventories 
+		WHERE category_id=?
+		limit ? offset ?
+	`
+
+	if err := ad.DB.Raw(query, catID, limit, offset).Scan(&productDetails).Error; err != nil {
 		return []models.Inventory{}, err
 	}
 

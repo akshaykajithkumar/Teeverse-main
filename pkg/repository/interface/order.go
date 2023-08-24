@@ -7,7 +7,8 @@ import (
 )
 
 type OrderRepository interface {
-	GetOrders(id int) ([]domain.Order, error)
+	GetOrders(id, page, limit int) ([]domain.Order, error)
+	GetProductsQuantity() ([]domain.ProductReport, error)
 	GetOrdersInRange(startDate, endDate time.Time) ([]domain.Order, error)
 	GetProductNameFromID(id int) (string, error)
 	GetCart(userid int) ([]models.GetCart, error)
@@ -21,4 +22,6 @@ type OrderRepository interface {
 	GetOrderDetail(orderID string) (domain.Order, error)
 	FindUserIdFromOrderID(id int) (int, error)
 	FindAmountFromOrderID(id int) (float64, error)
+	ReturnOrder(id int) error
+	CheckIfTheOrderIsAlreadyReturned(id int) (string, error)
 }

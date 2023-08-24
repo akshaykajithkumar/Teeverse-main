@@ -12,12 +12,14 @@ import (
 )
 
 type userUseCase struct {
-	userRepo interfaces.UserRepository
+	userRepo  interfaces.UserRepository
+	offerRepo interfaces.OfferRepository
 }
 
-func NewUserUseCase(repo interfaces.UserRepository) services.UserUseCase {
+func NewUserUseCase(repo interfaces.UserRepository, offer interfaces.OfferRepository) services.UserUseCase {
 	return &userUseCase{
-		userRepo: repo,
+		userRepo:  repo,
+		offerRepo: offer,
 	}
 }
 
@@ -203,7 +205,7 @@ func (u *userUseCase) GetCartID(userID int) (int, error) {
 	return cartID, nil
 }
 
-func (u *userUseCase) GetCart(id int) ([]models.GetCart, error) {
+func (u *userUseCase) GetCart(id, page, limit int) ([]models.GetCart, error) {
 
 	//find cart id
 	cart_id, err := u.userRepo.GetCartID(id)
@@ -211,7 +213,7 @@ func (u *userUseCase) GetCart(id int) ([]models.GetCart, error) {
 		return []models.GetCart{}, err
 	}
 	//find products inside cart
-	products, err := u.userRepo.GetProductsInCart(cart_id)
+	products, err := u.userRepo.GetProductsInCart(cart_id, page, limit)
 	if err != nil {
 		return []models.GetCart{}, err
 	}
@@ -262,6 +264,21 @@ func (u *userUseCase) GetCart(id int) ([]models.GetCart, error) {
 		get.Total = price[i]
 
 		getcart = append(getcart, get)
+	}
+
+	//find offers
+	var offers []int
+	for i := range categories {
+		c, err := u.offerRepo.FindDiscountPercentage(categories[i])
+		if err != nil {
+			return []models.GetCart{}, err
+		}
+		offers = append(offers, c)
+	}
+
+	//find discounted price
+	for i := range getcart {
+		getcart[i].DiscountedPrice = (getcart[i].Total) - (getcart[i].Total * float64(offers[i]) / 100)
 	}
 
 	return getcart, nil

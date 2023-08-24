@@ -239,10 +239,27 @@ func (i *UserHandler) GetAddresses(c *gin.Context) {
 // @Tags			User
 // @Produce		    json
 // @Security		Bearer
+// @Param			page	query  string 	true	"page"
+// @Param			limit	query  string 	true	"limit"
 // @Success		200	{object}	response.Response{}
 // @Failure		500	{object}	response.Response{}
 // @Router			/users/cart [get]
 func (i *UserHandler) GetCart(c *gin.Context) {
+	pageStr := c.Query("page")
+	page, err := strconv.Atoi(pageStr)
+	if err != nil {
+		errorRes := response.ClientResponse(http.StatusBadRequest, "page number not in right format", nil, err.Error())
+		c.JSON(http.StatusBadRequest, errorRes)
+		return
+	}
+	limitStr := c.Query("limit")
+	limit, err := strconv.Atoi(limitStr)
+	if err != nil {
+		errorRes := response.ClientResponse(http.StatusBadRequest, "limit number not in right format", nil, err.Error())
+		c.JSON(http.StatusBadRequest, errorRes)
+		return
+	}
+
 	id, err := helper.GetUserID(c)
 	if err != nil {
 		errorRes := response.ClientResponse(http.StatusBadRequest, "Could not get userID", nil, err.Error())
@@ -250,7 +267,7 @@ func (i *UserHandler) GetCart(c *gin.Context) {
 		return
 	}
 
-	products, err := i.userUseCase.GetCart(id)
+	products, err := i.userUseCase.GetCart(id, page, limit)
 	if err != nil {
 		errorRes := response.ClientResponse(http.StatusBadRequest, "could not retrieve cart", nil, err.Error())
 		c.JSON(http.StatusBadRequest, errorRes)
@@ -313,8 +330,8 @@ func (i *UserHandler) Login(c *gin.Context) {
 	}
 
 	successRes := response.ClientResponse(http.StatusOK, "User successfully logged in", userDetails, nil)
-	c.SetCookie("Authorization", userDetails.Token, 3600, "", "", true, true)
-
+	c.SetCookie("Authorization", userDetails.Token, 3600, "/", "teeverse.online", true, false)
+	//c.SetCookie("Authorization", userDetails.Token, 3600, "", "", true, true)
 	c.JSON(http.StatusOK, successRes)
 }
 

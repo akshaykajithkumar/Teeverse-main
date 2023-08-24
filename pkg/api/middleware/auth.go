@@ -19,8 +19,28 @@ func AdminAuthMiddleware(c *gin.Context) {
 	token, _ := c.Cookie("Authorization")
 	fmt.Println("Token::", token)
 	fmt.Println(token)
-	if err := validateToken(token); err != nil {
+	jwttoken, err := validateToken(token)
+	if err != nil {
 		c.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+	if err != nil || !jwttoken.Valid {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid authorization token"})
+		c.Abort()
+		return
+	}
+
+	claims, ok := jwttoken.Claims.(jwt.MapClaims)
+	if !ok || !jwttoken.Valid {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid authorization token"})
+		c.Abort()
+		return
+	}
+
+	role, ok := claims["role"].(string)
+	if !ok || role != "admin" {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Unauthorized access"})
+		c.Abort()
 		return
 	}
 	c.Next()
@@ -32,9 +52,9 @@ validateToken is for decrypting a jwt token using HMAC256 algorithm
 Parameters:
 - c: Gin Context.
 */
-func validateToken(token string) error {
+func validateToken(token string) (*jwt.Token, error) {
 	fmt.Println("Token validating.........")
-	_, err := jwt.Parse(token, func(t *jwt.Token) (interface{}, error) {
+	jwttoken, err := jwt.Parse(token, func(t *jwt.Token) (interface{}, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", t.Header["alg"])
 		}
@@ -43,5 +63,5 @@ func validateToken(token string) error {
 		return []byte(secret), nil
 	})
 
-	return err
+	return jwttoken, err
 }

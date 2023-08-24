@@ -27,15 +27,16 @@ func NewInventoryHandler(usecase services.InventoryUseCase) *InventoryHandler {
 // @Produce		    json
 // @Param			category_id		formData	string	true	"category_id"
 // @Param			product_name	formData	string	true	"product_name"
+// @Param			description		formData	string	true	"description"
 // @Param			price	formData	string	true	"price"
 // @Param			stock		formData	string	true	"stock"
-// @Param           image      formData     string   true   "image"
+// @Param           image      formData     file   true   "image"
 // @Security		Bearer
 // @Success		200	{object}	response.Response{}
 // @Failure		500	{object}	response.Response{}
 // @Router			/admin/inventories/add [post]
 func (i *InventoryHandler) AddInventory(c *gin.Context) {
-
+	//change
 	var inventory models.Inventory
 	categoryID, err := strconv.Atoi(c.Request.FormValue("category_id"))
 	if err != nil {
@@ -44,6 +45,7 @@ func (i *InventoryHandler) AddInventory(c *gin.Context) {
 		return
 	}
 	product_name := c.Request.FormValue("product_name")
+	description := c.Request.FormValue("description")
 	p, err := strconv.Atoi(c.Request.FormValue("price"))
 	if err != nil {
 		errorRes := response.ClientResponse(http.StatusBadRequest, "form file error", nil, err.Error())
@@ -58,7 +60,7 @@ func (i *InventoryHandler) AddInventory(c *gin.Context) {
 		return
 	}
 
-	image := c.Request.FormValue("image")
+	image, err := c.FormFile("image")
 	if err != nil {
 		errorRes := response.ClientResponse(http.StatusBadRequest, "retrieving image from form error", nil, err.Error())
 		c.JSON(http.StatusBadRequest, errorRes)
@@ -66,11 +68,12 @@ func (i *InventoryHandler) AddInventory(c *gin.Context) {
 	}
 	inventory.CategoryID = categoryID
 	inventory.ProductName = product_name
+	inventory.Description = description
 	inventory.Price = price
 	inventory.Stock = stock
-	inventory.Image = image
+	inventory.Image = image.Filename
 
-	InventoryResponse, err := i.InventoryUseCase.AddInventory(inventory, image)
+	InventoryResponse, err := i.InventoryUseCase.AddInventory(inventory, image.Filename)
 	if err != nil {
 		errorRes := response.ClientResponse(http.StatusBadRequest, "Could not add the Inventory", nil, err.Error())
 		c.JSON(http.StatusBadRequest, errorRes)
@@ -79,95 +82,11 @@ func (i *InventoryHandler) AddInventory(c *gin.Context) {
 
 	successRes := response.ClientResponse(http.StatusOK, "Successfully added Inventory", InventoryResponse, nil)
 	c.JSON(http.StatusOK, successRes)
-
-}
-
-// @Summary		Update Stock
-// @Description	Admin can update stock of the inventories
-// @Tags			Admin
-// @Accept			json
-// @Produce		    json
-// @Param			add-stock	body	models.InventoryUpdate	true	"update stock"
-// @Security		Bearer
-// @Success		200	{object}	response.Response{}
-// @Failure		500	{object}	response.Response{}
-// @Router			/admin/inventories/update [put]
-func (i *InventoryHandler) UpdateInventory(c *gin.Context) {
-
-	var p models.InventoryUpdate
-
-	if err := c.BindJSON(&p); err != nil {
-		errorRes := response.ClientResponse(http.StatusBadRequest, "fields provided are in wrong format", nil, err.Error())
-		c.JSON(http.StatusBadRequest, errorRes)
-		return
-	}
-
-	a, err := i.InventoryUseCase.UpdateInventory(p.Productid, p.Stock)
-	if err != nil {
-		errorRes := response.ClientResponse(http.StatusBadRequest, "could not update the inventory stock", nil, err.Error())
-		c.JSON(http.StatusBadRequest, errorRes)
-		return
-	}
-
-	successRes := response.ClientResponse(http.StatusOK, "Successfully updated the inventory stock", a, nil)
-	c.JSON(http.StatusOK, successRes)
-
-}
-
-// @Summary		Delete Inventory
-// @Description	Admin can delete a product
-// @Tags			Admin
-// @Accept			json
-// @Produce		    json
-// @Param			id	query	string	true	"id"
-// @Security		Bearer
-// @Success		200	{object}	response.Response{}
-// @Failure		500	{object}	response.Response{}
-// @Router			/admin/inventories/delete [delete]
-func (i *InventoryHandler) DeleteInventory(c *gin.Context) {
-
-	inventoryID := c.Query("id")
-	err := i.InventoryUseCase.DeleteInventory(inventoryID)
-	if err != nil {
-		errorRes := response.ClientResponse(http.StatusBadRequest, "fields provided are in wrong format", nil, err.Error())
-		c.JSON(http.StatusBadRequest, errorRes)
-		return
-	}
-
-	successRes := response.ClientResponse(http.StatusOK, "Successfully deleted the inventory", nil, nil)
-	c.JSON(http.StatusOK, successRes)
-
-}
-
-// @Summary		Show Product Details
-// @Description	user can view the details of the product
-// @Tags			User
-// @Accept			json
-// @Produce		    json
-// @Param			inventoryID	query	string	true	"Inventory ID"
-// @Security		Bearer
-// @Success		200	{object}	response.Response{}
-// @Failure		500	{object}	response.Response{}
-// @Router			/users/home/products/details [get]
-func (i *InventoryHandler) ShowIndividualProducts(c *gin.Context) {
-
-	id := c.Query("inventoryID")
-	product, err := i.InventoryUseCase.ShowIndividualProducts(id)
-
-	if err != nil {
-		errorRes := response.ClientResponse(http.StatusBadRequest, "path variables in wrong format", nil, err.Error())
-		c.JSON(http.StatusBadRequest, errorRes)
-		return
-	}
-
-	successRes := response.ClientResponse(http.StatusOK, "Product details retrieved successfully", product, nil)
-	c.JSON(http.StatusOK, successRes)
-
 }
 
 // @Summary		List Products
-// @Description	user can view the list of available products
-// @Tags			User
+// @Description	client can view the list of available products
+// @Tags			Admin
 // @Accept			json
 // @Produce		    json
 // @Param			page	query  string 	true	"page"
@@ -175,8 +94,8 @@ func (i *InventoryHandler) ShowIndividualProducts(c *gin.Context) {
 // @Security		Bearer
 // @Success		200	{object}	response.Response{}
 // @Failure		500	{object}	response.Response{}
-// @Router			/users/home/products [get]
-func (i *InventoryHandler) ListProducts(c *gin.Context) {
+// @Router			/admin/products [get]
+func (i *InventoryHandler) AdminListProducts(c *gin.Context) {
 	pageStr := c.Query("page")
 	page, err := strconv.Atoi(pageStr)
 	if err != nil {
@@ -202,8 +121,8 @@ func (i *InventoryHandler) ListProducts(c *gin.Context) {
 }
 
 // @Summary		Search Products
-// @Description	user can search with a key and get the list of  products similar to that key
-// @Tags			User
+// @Description	client can search with a key and get the list of  products similar to that key
+// @Tags			Products
 // @Accept			json
 // @Produce		    json
 // @Param			page	query  string 	true	"page"
@@ -211,7 +130,7 @@ func (i *InventoryHandler) ListProducts(c *gin.Context) {
 // @Param			searchkey 	query  string 	true	"searchkey"
 // @Success		200	{object}	response.Response{}
 // @Failure		500	{object}	response.Response{}
-// @Router			/users/search [post]
+// @Router			/products/search [get]
 func (i *InventoryHandler) SearchProducts(c *gin.Context) {
 	pageStr := c.Query("page")
 	page, err := strconv.Atoi(pageStr)
@@ -229,6 +148,50 @@ func (i *InventoryHandler) SearchProducts(c *gin.Context) {
 	}
 	searchkey := c.Query("searchkey")
 	results, err := i.InventoryUseCase.SearchProducts(searchkey, page, limit)
+	if err != nil {
+		errorRes := response.ClientResponse(http.StatusBadRequest, "could not retrieve the records", nil, err.Error())
+		c.JSON(http.StatusBadRequest, errorRes)
+		return
+	}
+
+	successRes := response.ClientResponse(http.StatusOK, "Successfully got all records", results, nil)
+	c.JSON(http.StatusOK, successRes)
+}
+
+// @Summary		filter Products by category
+// @Description	client can filter with a category and get the list of  products in the category
+// @Tags			Products
+// @Accept			json
+// @Produce		    json
+// @Param			page	query  string 	true	"page"
+// @Param			limit	query  string 	true	"limit"
+// @Param			catID 	query  string 	true	"category ID"
+// @Success		200	{object}	response.Response{}
+// @Failure		500	{object}	response.Response{}
+// @Router			/products/category [get]
+func (i *InventoryHandler) GetCategoryProducts(c *gin.Context) {
+	pageStr := c.Query("page")
+	page, err := strconv.Atoi(pageStr)
+	if err != nil {
+		errorRes := response.ClientResponse(http.StatusBadRequest, "page number not in right format", nil, err.Error())
+		c.JSON(http.StatusBadRequest, errorRes)
+		return
+	}
+	limitStr := c.Query("limit")
+	limit, err := strconv.Atoi(limitStr)
+	if err != nil {
+		errorRes := response.ClientResponse(http.StatusBadRequest, "limit number not in right format", nil, err.Error())
+		c.JSON(http.StatusBadRequest, errorRes)
+		return
+	}
+	catIDstr := c.Query("catID")
+	catID, err := strconv.Atoi(catIDstr)
+	if err != nil {
+		errorRes := response.ClientResponse(http.StatusBadRequest, "category ID not in right format", nil, err.Error())
+		c.JSON(http.StatusBadRequest, errorRes)
+		return
+	}
+	results, err := i.InventoryUseCase.GetCategoryProducts(catID, page, limit)
 	if err != nil {
 		errorRes := response.ClientResponse(http.StatusBadRequest, "could not retrieve the records", nil, err.Error())
 		c.JSON(http.StatusBadRequest, errorRes)
