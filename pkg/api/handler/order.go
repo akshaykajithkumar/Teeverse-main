@@ -352,7 +352,7 @@ func (i *OrderHandler) DownloadInvoice(c *gin.Context) {
 	c.Header("Content-Type", "application/pdf")
 
 	// Read the PDF file and write it to the response
-	pdfData, err := os.ReadFile("teeverse.pdf")
+	pdfData, err := os.ReadFile("teeverse_invoice.pdf")
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to read PDF file"})
 		return

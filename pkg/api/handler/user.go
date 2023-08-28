@@ -330,8 +330,7 @@ func (i *UserHandler) Login(c *gin.Context) {
 	}
 
 	successRes := response.ClientResponse(http.StatusOK, "User successfully logged in", userDetails, nil)
-	c.SetCookie("Authorization", userDetails.Token, 3600, "/", "teeverse.online", true, false)
-	//c.SetCookie("Authorization", userDetails.Token, 3600, "", "", true, true)
+	c.SetCookie("Authorization", userDetails.Token, 3600, "", "", false, false)
 	c.JSON(http.StatusOK, successRes)
 }
 
