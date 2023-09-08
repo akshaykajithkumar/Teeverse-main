@@ -47,6 +47,14 @@ func (i *cartUseCase) AddToCart(user_id, inventory_id int) error {
 			return errors.New("cannot create cart from user")
 		}
 	}
+	//check if already added
+	if i.repo.CheckIfInvAdded(inventory_id, cart_id) {
+		err := i.repo.AddQuantity(inventory_id, cart_id)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
 
 	//add product to line items
 	if err := i.repo.AddLineItems(cart_id, inventory_id); err != nil {

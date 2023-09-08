@@ -68,3 +68,27 @@ func (i *cartRepository) AddLineItems(cart_id, inventory_id int) error {
 
 	return nil
 }
+
+func (i *cartRepository) CheckIfInvAdded(invID, cartID int) bool {
+	var count int = 0
+
+	if err := i.DB.Raw("SELECT COUNT(id) FROM line_items WHERE cart_id=? AND inventory_id=?", cartID, invID).Scan(&count).Error; err != nil {
+		return false
+	}
+
+	if count < 1 {
+		return false
+	}
+
+	return true
+
+}
+func (i *cartRepository) AddQuantity(invID, cartID int) error {
+
+	if err := i.DB.Exec("UPDATE line_items SET quantity=quantity+1 WHERE cart_id=? AND inventory_id=?", cartID, invID).Error; err != nil {
+		return err
+	}
+
+	return nil
+
+}

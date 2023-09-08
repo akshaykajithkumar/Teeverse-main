@@ -48,7 +48,7 @@ Start starts the HTTP server and listens on port 1243.
 */
 func (sh *ServerHTTP) Start() {
 	sh.engine.Run(":1243")
-	//err := http.ListenAndServeTLS(":443", "/etc/letsencrypt/live/seventysstore.online/fullchain.pem", "/etc/letsencrypt/live/seventysstore.online/privkey.pem", nil)
+
 	// if err != nil {
 	//   log.Fatal("ListenAndServeTLS: ", err)
 	//}
