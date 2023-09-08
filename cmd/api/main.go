@@ -11,9 +11,9 @@ func main() {
 	docs.SwaggerInfo.Title = "Teeverse"
 	docs.SwaggerInfo.Description = "universal tshirts "
 	docs.SwaggerInfo.Version = "1.0"
-	docs.SwaggerInfo.Host = "localhost:1243"
+	docs.SwaggerInfo.Host = "teeverse.online"
 	docs.SwaggerInfo.BasePath = ""
-	docs.SwaggerInfo.Schemes = []string{"http"}
+	docs.SwaggerInfo.Schemes = []string{"http","https"}
 	config, configErr := config.LoadConfig()
 	if configErr != nil {
 		log.Fatal("cannot load config: ", configErr)
