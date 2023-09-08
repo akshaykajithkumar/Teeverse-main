@@ -99,7 +99,7 @@ func (i *orderUseCase) OrderItemsFromCart(userid int, order models.Order) (strin
 		if err := i.orderRepository.AddOrderProducts(order_id, cart); err != nil {
 			return "", err
 		}
-		link := fmt.Sprintf("http://localhost:1243/users/payment/razorpay?id=%d", order_id)
+		link := fmt.Sprintf("https://teeverse.online/users/payment/razorpay?id=%d", order_id)
 		return link, err
 	}
 
