@@ -81,3 +81,40 @@ func (o *OfferHandler) ExpireValidity(c *gin.Context) {
 	successRes := response.ClientResponse(http.StatusOK, "Successfully turned the offer invalid", nil, nil)
 	c.JSON(http.StatusOK, successRes)
 }
+
+// @Summary		List Offers
+// @Description	Admin can view the list of  offers
+// @Tags			Admin
+// @Accept			json
+// @Produce		    json
+// @Param			page	query  string 	true	"page"
+// @Param			limit	query  string 	true	"limit"
+// @Security		Bearer
+// @Success		200	{object}	response.Response{}
+// @Failure		500	{object}	response.Response{}
+// @Router			/admin/offers [get]
+func (o *OfferHandler) Offers(c *gin.Context) {
+	pageStr := c.Query("page")
+	page, err := strconv.Atoi(pageStr)
+	if err != nil {
+		errorRes := response.ClientResponse(http.StatusBadRequest, "page number not in right format", nil, err.Error())
+		c.JSON(http.StatusBadRequest, errorRes)
+		return
+	}
+	limitStr := c.Query("limit")
+	limit, err := strconv.Atoi(limitStr)
+	if err != nil {
+		errorRes := response.ClientResponse(http.StatusBadRequest, "page number not in right format", nil, err.Error())
+		c.JSON(http.StatusBadRequest, errorRes)
+		return
+	}
+	//change
+	offers, err := o.offerUseCase.GetOffers(page, limit)
+	if err != nil {
+		errorRes := response.ClientResponse(http.StatusBadRequest, "could not retrieve records", nil, err.Error())
+		c.JSON(http.StatusBadRequest, errorRes)
+		return
+	}
+	successRes := response.ClientResponse(http.StatusOK, "Successfully retrieved the offers", offers, nil)
+	c.JSON(http.StatusOK, successRes)
+}

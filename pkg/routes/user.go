@@ -15,7 +15,7 @@ func UserRoutes(engine *gin.RouterGroup, userHandler *handler.UserHandler, otpHa
 	// Auth middleware
 	engine.Use(middleware.UserAuthMiddleware)
 	{
-
+		engine.POST("/logout", userHandler.Logout)
 		payment := engine.Group("/payment")
 		{
 			payment.GET("/razorpay", paymentHandler.MakePaymentRazorPay)
@@ -42,26 +42,25 @@ func UserRoutes(engine *gin.RouterGroup, userHandler *handler.UserHandler, otpHa
 		}
 		profile := engine.Group("/profile")
 		{
+
 			profile.GET("/details", userHandler.GetUserDetails)
 			profile.GET("/address", userHandler.GetAddresses)
 			profile.POST("/address/add", userHandler.AddAddress)
-
-			edit := profile.Group("/edit")
-			{
-				edit.PUT("/name", userHandler.EditName)
-				edit.PUT("/email", userHandler.EditEmail)
-				edit.PUT("/phone", userHandler.EditPhone)
-			}
+			profile.PATCH("/edit", userHandler.EditUser)
 
 			security := profile.Group("/security")
 			{
-				security.PUT("/change-password", userHandler.ChangePassword)
+				security.PATCH("/change-password", userHandler.ChangePassword)
+			}
+			wallet := profile.Group("wallet")
+			{
+				wallet.GET("", userHandler.GetWallet)
 			}
 			orders := profile.Group("/orders")
 			{
 				orders.GET("", orderHandler.GetOrders)
-				orders.DELETE("", orderHandler.CancelOrder)
-				orders.PUT("/return", orderHandler.ReturnOrder)
+				orders.POST("/cancel", orderHandler.CancelOrder)
+				orders.POST("/return", orderHandler.ReturnOrder)
 
 			}
 		}

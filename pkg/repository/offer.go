@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"Teeverse/pkg/domain"
 	interfaces "Teeverse/pkg/repository/interface"
 	"Teeverse/pkg/utils/models"
 
@@ -33,12 +34,30 @@ func (o *offerRepository) MakeOfferExpire(catID int) error {
 	return nil
 }
 
-func (o *offerRepository) FindDiscountPercentage(catID int) (int, error) {
+func (o *offerRepository) FindDiscountPercentage(cat string) (int, error) {
 	var percentage int
-	err := o.DB.Raw("select discount_rate from offers where category_id=$1 and valid=true", catID).Scan(&percentage).Error
+	err := o.DB.Raw("select offers.discount_rate from offers join categories on offers.category_id=categories.id where categories.category=$1 and valid=true", cat).Scan(&percentage).Error
+	//select offers.discount_rate from offers join categories on offers.category_id=categories.id where categories.category=
 	if err != nil {
 		return 0, err
 	}
 
 	return percentage, nil
+}
+
+func (o *offerRepository) GetOffers(page, limit int) ([]domain.Offer, error) {
+	if page == 0 {
+		page = 1
+	}
+	if limit == 0 {
+		limit = 10
+	}
+	offset := (page - 1) * limit
+	var offers []domain.Offer
+
+	if err := o.DB.Raw("select id,category_id,discount_rate,valid from offers limit ? offset ?", limit, offset).Scan(&offers).Error; err != nil {
+		return []domain.Offer{}, err
+	}
+
+	return offers, nil
 }

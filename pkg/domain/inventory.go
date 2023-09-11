@@ -15,5 +15,12 @@ type Inventory struct {
 // Category represents the category of product
 type Category struct {
 	ID       uint   `json:"id" gorm:"unique;not null"`
-	Category string `json:"category"`
+	Category string `json:"category" gorm:"unique;not null"`
+}
+
+type Image struct {
+	ID          int       `json:"id" gorm:"unique;not null"`
+	InventoryID int       `json:"inventory_id"`
+	Inventory   Inventory `json:"-" gorm:"foriegnkey:InventoryID"`
+	ImageURL    string    `json:"imageurl"`
 }

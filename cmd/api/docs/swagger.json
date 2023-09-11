@@ -181,7 +181,7 @@
             }
         },
         "/admin/category/update": {
-            "put": {
+            "patch": {
                 "security": [
                     {
                         "Bearer": []
@@ -207,6 +207,56 @@
                         "schema": {
                             "$ref": "#/definitions/models.SetNewName"
                         }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/coupons": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Admin can view the list of  Coupons",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "List Coupons",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "page",
+                        "name": "page",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "limit",
+                        "name": "limit",
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -391,6 +441,56 @@
                 }
             }
         },
+        "/admin/inventories/add-image": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Admin can add new image to product",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Add image to an Inventory",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "product_id",
+                        "name": "product_id",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "image",
+                        "name": "image",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/admin/inventories/delete": {
             "delete": {
                 "security": [
@@ -414,6 +514,56 @@
                         "type": "string",
                         "description": "id",
                         "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/inventories/delete-image": {
+            "delete": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Admin can delete a product image",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Delete Inventory image",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "product_id",
+                        "name": "product_id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "image_id",
+                        "name": "image_id",
                         "in": "query",
                         "required": true
                     }
@@ -468,6 +618,85 @@
                         "schema": {
                             "$ref": "#/definitions/models.UpdateInventory"
                         }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/logout": {
+            "post": {
+                "description": "admin can logout",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "admin Logout",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/offers": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Admin can view the list of  offers",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "List Offers",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "page",
+                        "name": "page",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "limit",
+                        "name": "limit",
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -603,6 +832,56 @@
                         "name": "limit",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "status",
+                        "name": "status",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/orders/edit/mark-as-paid": {
+            "patch": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Admin can change the status of the payment",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Update Payment Status",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "order id",
+                        "name": "orderID",
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -622,7 +901,7 @@
             }
         },
         "/admin/orders/edit/status": {
-            "put": {
+            "patch": {
                 "security": [
                     {
                         "Bearer": []
@@ -784,7 +1063,7 @@
                 "tags": [
                     "Admin"
                 ],
-                "summary": "List Products",
+                "summary": "List Productss",
                 "parameters": [
                     {
                         "type": "string",
@@ -1196,11 +1475,61 @@
                         "name": "limit",
                         "in": "query",
                         "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/products/category_details": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "client can view the list of available products",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Products"
+                ],
+                "summary": "List Products based on category",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "page",
+                        "name": "page",
+                        "in": "query",
+                        "required": true
                     },
                     {
                         "type": "string",
-                        "description": "category ID",
-                        "name": "catID",
+                        "description": "limit",
+                        "name": "limit",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "id",
+                        "name": "catid",
                         "in": "query",
                         "required": true
                     }
@@ -1266,7 +1595,7 @@
         },
         "/products/search": {
             "get": {
-                "description": "client can search with a key and get the list of  products similar to that key",
+                "description": "client can search with a key and get the list of products similar to that key",
                 "consumes": [
                     "application/json"
                 ],
@@ -1298,6 +1627,12 @@
                         "name": "searchkey",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "sortBY (asc/desc) - Sort by price in ascending (asc) or descending (desc) order",
+                        "name": "sortBY",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -1307,8 +1642,8 @@
                             "$ref": "#/definitions/response.Response"
                         }
                     },
-                    "500": {
-                        "description": "Internal Server Error",
+                    "400": {
+                        "description": "Bad Request",
                         "schema": {
                             "$ref": "#/definitions/response.Response"
                         }
@@ -1404,7 +1739,7 @@
             }
         },
         "/users/cart/updateQuantity/minus": {
-            "put": {
+            "post": {
                 "security": [
                     {
                         "Bearer": []
@@ -1447,7 +1782,7 @@
             }
         },
         "/users/cart/updateQuantity/plus": {
-            "put": {
+            "post": {
                 "security": [
                     {
                         "Bearer": []
@@ -1539,6 +1874,12 @@
                 ],
                 "summary": "Order Now",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "coupon",
+                        "name": "coupon",
+                        "in": "query"
+                    },
                     {
                         "description": "order",
                         "name": "order",
@@ -1716,6 +2057,35 @@
                 }
             }
         },
+        "/users/logout": {
+            "post": {
+                "description": "user can log in by giving their details",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "User Logout",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/users/otplogin": {
             "post": {
                 "description": "OTP login send otp",
@@ -1869,14 +2239,14 @@
                 }
             }
         },
-        "/users/profile/edit/email": {
-            "put": {
+        "/users/profile/edit": {
+            "patch": {
                 "security": [
                     {
                         "Bearer": []
                     }
                 ],
-                "description": "user can change their Email",
+                "description": "user can change their Details",
                 "consumes": [
                     "application/json"
                 ],
@@ -1886,105 +2256,15 @@
                 "tags": [
                     "User"
                 ],
-                "summary": "Edit Email",
+                "summary": "Edit User",
                 "parameters": [
                     {
-                        "description": "edit-email",
-                        "name": "model",
+                        "description": "edit-user",
+                        "name": "userData",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.EditEmail"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/response.Response"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/response.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/users/profile/edit/name": {
-            "put": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
-                "description": "user can change their name",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "User"
-                ],
-                "summary": "Edit Name",
-                "parameters": [
-                    {
-                        "description": "edit-name",
-                        "name": "model",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.EditName"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/response.Response"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/response.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/users/profile/edit/phone": {
-            "put": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
-                "description": "user can change their Phone",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "User"
-                ],
-                "summary": "Edit Phone",
-                "parameters": [
-                    {
-                        "description": "edit-phone",
-                        "name": "model",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.EditPhone"
+                            "$ref": "#/definitions/models.EditUser"
                         }
                     }
                 ],
@@ -2052,8 +2332,10 @@
                         }
                     }
                 }
-            },
-            "delete": {
+            }
+        },
+        "/users/profile/orders/cancel": {
+            "post": {
                 "security": [
                     {
                         "Bearer": []
@@ -2070,6 +2352,15 @@
                     "User"
                 ],
                 "summary": "Order Cancel",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "order id",
+                        "name": "orderid",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -2087,7 +2378,7 @@
             }
         },
         "/users/profile/orders/return": {
-            "put": {
+            "post": {
                 "security": [
                     {
                         "Bearer": []
@@ -2130,7 +2421,7 @@
             }
         },
         "/users/profile/security/change-password": {
-            "put": {
+            "patch": {
                 "security": [
                     {
                         "Bearer": []
@@ -2156,6 +2447,51 @@
                         "schema": {
                             "$ref": "#/definitions/models.ChangePassword"
                         }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/profile/wallet": {
+            "get": {
+                "description": "user can get wallet details and history",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Get Wallet",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "page",
+                        "name": "page",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "limit",
+                        "name": "limit",
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -2424,26 +2760,19 @@
                 }
             }
         },
-        "models.EditEmail": {
+        "models.EditUser": {
             "type": "object",
             "properties": {
                 "email": {
                     "type": "string"
-                }
-            }
-        },
-        "models.EditName": {
-            "type": "object",
-            "properties": {
+                },
                 "name": {
                     "type": "string"
-                }
-            }
-        },
-        "models.EditPhone": {
-            "type": "object",
-            "properties": {
+                },
                 "phone": {
+                    "type": "string"
+                },
+                "username": {
                     "type": "string"
                 }
             }
@@ -2463,9 +2792,6 @@
             "type": "object",
             "properties": {
                 "address_id": {
-                    "type": "integer"
-                },
-                "couponID": {
                     "type": "integer"
                 },
                 "paymentID": {

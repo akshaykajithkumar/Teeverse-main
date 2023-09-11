@@ -9,7 +9,6 @@ import (
 
 	"gorm.io/gorm"
 )
-
 type orderRepository struct {
 	DB *gorm.DB
 }
@@ -112,9 +111,9 @@ func (o *orderRepository) AddOrderProducts(order_id int, cart []models.GetCart) 
 	return nil
 }
 
-func (o *orderRepository) CancelOrder(id int) error {
+func (o *orderRepository) CancelOrder(orderid int) error {
 
-	if err := o.DB.Exec("update orders set order_status='CANCELED' where id=?", id).Error; err != nil {
+	if err := o.DB.Exec("update orders set order_status='CANCELED' where id=?", orderid).Error; err != nil {
 		return err
 	}
 
@@ -130,10 +129,26 @@ func (o *orderRepository) EditOrderStatus(status string, id int) error {
 	return nil
 }
 
-func (o *orderRepository) AdminOrders(status string) ([]domain.OrderDetails, error) {
+func (o *orderRepository) MarkAsPaid(orderID int) error {
 
+	if err := o.DB.Exec("update orders set payment_status='PAID' where id=?", orderID).Error; err != nil {
+		return err
+	}
+
+	return nil
+}
+
+
+func (o *orderRepository) AdminOrders(page,limit int,status string) ([]domain.OrderDetails, error) {
+	if page == 0 {
+		page = 1
+	}
+	if limit == 0 {
+		limit = 10
+	}
+	offset := (page - 1) * limit
 	var orders []domain.OrderDetails
-	if err := o.DB.Raw("SELECT orders.id AS order_id, users.name AS username, CONCAT(addresses.house_name, ' ', addresses.street, ' ', addresses.city) AS address, payment_methods.payment_method AS payment_method, orders.price As total FROM orders JOIN users ON users.id = orders.user_id JOIN addresses ON orders.address_id = addresses.id JOIN payment_methods ON orders.payment_method_id=payment_methods.id WHERE order_status = ?", status).Scan(&orders).Error; err != nil {
+	if err := o.DB.Raw("SELECT orders.id AS order_id, users.name AS username, CONCAT(addresses.house_name, ' ', addresses.street, ' ', addresses.city) AS address, payment_methods.payment_method AS payment_method, orders.price As total FROM orders JOIN users ON users.id = orders.user_id JOIN addresses ON orders.address_id = addresses.id JOIN payment_methods ON orders.payment_method_id=payment_methods.id WHERE order_status = ? limit ? offset ?", status,limit,offset).Scan(&orders).Error; err != nil {
 		return []domain.OrderDetails{}, err
 	}
 
@@ -206,10 +221,21 @@ func (i *orderRepository) ReturnOrder(orderID int) error {
 
 }
 
-func (o *orderRepository) CheckIfTheOrderIsAlreadyReturned(orderID int) (string, error) {
+func (o *orderRepository) CheckOrderStatus(orderID int) (string, error) {
 
 	var status string
 	err := o.DB.Raw("select order_status from orders where id = ?", orderID).Scan(&status).Error
+	if err != nil {
+		return "", err
+	}
+
+	return status, nil
+}
+
+func (o *orderRepository) CheckPaymentStatus(orderID int) (string, error) {
+
+	var status string
+	err := o.DB.Raw("select payment_status from orders where id = ?", orderID).Scan(&status).Error
 	if err != nil {
 		return "", err
 	}

@@ -64,19 +64,15 @@ definitions:
       startingDate:
         type: string
     type: object
-  models.EditEmail:
+  models.EditUser:
     properties:
       email:
         type: string
-    type: object
-  models.EditName:
-    properties:
       name:
         type: string
-    type: object
-  models.EditPhone:
-    properties:
       phone:
+        type: string
+      username:
         type: string
     type: object
   models.OTPData:
@@ -89,8 +85,6 @@ definitions:
   models.Order:
     properties:
       address_id:
-        type: integer
-      couponID:
         type: integer
       paymentID:
         type: integer
@@ -272,7 +266,7 @@ paths:
       tags:
       - Admin
   /admin/category/update:
-    put:
+    patch:
       consumes:
       - application/json
       description: Admin can update name of a category into new name
@@ -297,6 +291,38 @@ paths:
       security:
       - Bearer: []
       summary: Update Category
+      tags:
+      - Admin
+  /admin/coupons:
+    get:
+      consumes:
+      - application/json
+      description: Admin can view the list of  Coupons
+      parameters:
+      - description: page
+        in: query
+        name: page
+        required: true
+        type: string
+      - description: limit
+        in: query
+        name: limit
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - Bearer: []
+      summary: List Coupons
       tags:
       - Admin
   /admin/coupons/create:
@@ -407,6 +433,38 @@ paths:
       summary: Add Inventory
       tags:
       - Admin
+  /admin/inventories/add-image:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Admin can add new image to product
+      parameters:
+      - description: product_id
+        in: formData
+        name: product_id
+        required: true
+        type: string
+      - description: image
+        in: formData
+        name: image
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - Bearer: []
+      summary: Add image to an Inventory
+      tags:
+      - Admin
   /admin/inventories/delete:
     delete:
       consumes:
@@ -432,6 +490,38 @@ paths:
       security:
       - Bearer: []
       summary: Delete Inventory
+      tags:
+      - Admin
+  /admin/inventories/delete-image:
+    delete:
+      consumes:
+      - application/json
+      description: Admin can delete a product image
+      parameters:
+      - description: product_id
+        in: query
+        name: product_id
+        required: true
+        type: string
+      - description: image_id
+        in: query
+        name: image_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - Bearer: []
+      summary: Delete Inventory image
       tags:
       - Admin
   /admin/inventories/update:
@@ -465,6 +555,57 @@ paths:
       security:
       - Bearer: []
       summary: Update Stock
+      tags:
+      - Admin
+  /admin/logout:
+    post:
+      consumes:
+      - application/json
+      description: admin can logout
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: admin Logout
+      tags:
+      - Admin
+  /admin/offers:
+    get:
+      consumes:
+      - application/json
+      description: Admin can view the list of  offers
+      parameters:
+      - description: page
+        in: query
+        name: page
+        required: true
+        type: string
+      - description: limit
+        in: query
+        name: limit
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - Bearer: []
+      summary: List Offers
       tags:
       - Admin
   /admin/offers/create:
@@ -536,6 +677,11 @@ paths:
         name: limit
         required: true
         type: string
+      - description: status
+        in: query
+        name: status
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -552,8 +698,35 @@ paths:
       summary: Admin Orders
       tags:
       - Admin
+  /admin/orders/edit/mark-as-paid:
+    patch:
+      consumes:
+      - application/json
+      description: Admin can change the status of the payment
+      parameters:
+      - description: order id
+        in: query
+        name: orderID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - Bearer: []
+      summary: Update Payment Status
+      tags:
+      - Admin
   /admin/orders/edit/status:
-    put:
+    patch:
       consumes:
       - application/json
       description: Admin can change the status of the order
@@ -676,7 +849,7 @@ paths:
             $ref: '#/definitions/response.Response'
       security:
       - Bearer: []
-      summary: List Products
+      summary: List Productss
       tags:
       - Admin
   /admin/sales/annual:
@@ -916,9 +1089,39 @@ paths:
         name: limit
         required: true
         type: string
-      - description: category ID
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: filter Products by category
+      tags:
+      - Products
+  /products/category_details:
+    get:
+      consumes:
+      - application/json
+      description: client can view the list of available products
+      parameters:
+      - description: page
         in: query
-        name: catID
+        name: page
+        required: true
+        type: string
+      - description: limit
+        in: query
+        name: limit
+        required: true
+        type: string
+      - description: id
+        in: query
+        name: catid
         required: true
         type: string
       produces:
@@ -932,7 +1135,9 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/response.Response'
-      summary: filter Products by category
+      security:
+      - Bearer: []
+      summary: List Products based on category
       tags:
       - Products
   /products/details:
@@ -966,7 +1171,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: client can search with a key and get the list of  products similar
+      description: client can search with a key and get the list of products similar
         to that key
       parameters:
       - description: page
@@ -984,6 +1189,11 @@ paths:
         name: searchkey
         required: true
         type: string
+      - description: sortBY (asc/desc) - Sort by price in ascending (asc) or descending
+          (desc) order
+        in: query
+        name: sortBY
+        type: string
       produces:
       - application/json
       responses:
@@ -991,8 +1201,8 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/response.Response'
-        "500":
-          description: Internal Server Error
+        "400":
+          description: Bad Request
           schema:
             $ref: '#/definitions/response.Response'
       summary: Search Products
@@ -1054,7 +1264,7 @@ paths:
       tags:
       - User
   /users/cart/updateQuantity/minus:
-    put:
+    post:
       consumes:
       - application/json
       description: user can subtract 1 quantity of product from their cart
@@ -1081,7 +1291,7 @@ paths:
       tags:
       - User
   /users/cart/updateQuantity/plus:
-    put:
+    post:
       consumes:
       - application/json
       description: user can add 1 quantity of product to their cart
@@ -1132,6 +1342,10 @@ paths:
       - application/json
       description: user can order the items that currently in cart
       parameters:
+      - description: coupon
+        in: query
+        name: coupon
+        type: string
       - description: order
         in: body
         name: order
@@ -1249,6 +1463,25 @@ paths:
       summary: User Login
       tags:
       - User
+  /users/logout:
+    post:
+      consumes:
+      - application/json
+      description: user can log in by giving their details
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: User Logout
+      tags:
+      - User
   /users/otplogin:
     post:
       consumes:
@@ -1345,18 +1578,18 @@ paths:
       summary: Get User Details
       tags:
       - User
-  /users/profile/edit/email:
-    put:
+  /users/profile/edit:
+    patch:
       consumes:
       - application/json
-      description: user can change their Email
+      description: user can change their Details
       parameters:
-      - description: edit-email
+      - description: edit-user
         in: body
-        name: model
+        name: userData
         required: true
         schema:
-          $ref: '#/definitions/models.EditEmail'
+          $ref: '#/definitions/models.EditUser'
       produces:
       - application/json
       responses:
@@ -1370,86 +1603,10 @@ paths:
             $ref: '#/definitions/response.Response'
       security:
       - Bearer: []
-      summary: Edit Email
-      tags:
-      - User
-  /users/profile/edit/name:
-    put:
-      consumes:
-      - application/json
-      description: user can change their name
-      parameters:
-      - description: edit-name
-        in: body
-        name: model
-        required: true
-        schema:
-          $ref: '#/definitions/models.EditName'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/response.Response'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/response.Response'
-      security:
-      - Bearer: []
-      summary: Edit Name
-      tags:
-      - User
-  /users/profile/edit/phone:
-    put:
-      consumes:
-      - application/json
-      description: user can change their Phone
-      parameters:
-      - description: edit-phone
-        in: body
-        name: model
-        required: true
-        schema:
-          $ref: '#/definitions/models.EditPhone'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/response.Response'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/response.Response'
-      security:
-      - Bearer: []
-      summary: Edit Phone
+      summary: Edit User
       tags:
       - User
   /users/profile/orders:
-    delete:
-      consumes:
-      - application/json
-      description: user can cancel the orders
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/response.Response'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/response.Response'
-      security:
-      - Bearer: []
-      summary: Order Cancel
-      tags:
-      - User
     get:
       consumes:
       - application/json
@@ -1481,8 +1638,35 @@ paths:
       summary: Get Orders
       tags:
       - User
+  /users/profile/orders/cancel:
+    post:
+      consumes:
+      - application/json
+      description: user can cancel the orders
+      parameters:
+      - description: order id
+        in: query
+        name: orderid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - Bearer: []
+      summary: Order Cancel
+      tags:
+      - User
   /users/profile/orders/return:
-    put:
+    post:
       consumes:
       - application/json
       description: user can return the ordered products which is already delivered
@@ -1510,7 +1694,7 @@ paths:
       tags:
       - User
   /users/profile/security/change-password:
-    put:
+    patch:
       consumes:
       - application/json
       description: user can change their password
@@ -1535,6 +1719,36 @@ paths:
       security:
       - Bearer: []
       summary: Change Password
+      tags:
+      - User
+  /users/profile/wallet:
+    get:
+      consumes:
+      - application/json
+      description: user can get wallet details and history
+      parameters:
+      - description: page
+        in: query
+        name: page
+        required: true
+        type: string
+      - description: limit
+        in: query
+        name: limit
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: Get Wallet
       tags:
       - User
   /users/signup:

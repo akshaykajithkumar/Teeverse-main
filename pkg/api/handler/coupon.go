@@ -78,3 +78,40 @@ func (coup *CouponHandler) MakeCouponInvalid(c *gin.Context) {
 	c.JSON(http.StatusOK, successRes)
 
 }
+
+// @Summary		List Coupons
+// @Description	Admin can view the list of  Coupons
+// @Tags			Admin
+// @Accept			json
+// @Produce		    json
+// @Param			page	query  string 	true	"page"
+// @Param			limit	query  string 	true	"limit"
+// @Security		Bearer
+// @Success		200	{object}	response.Response{}
+// @Failure		500	{object}	response.Response{}
+// @Router			/admin/coupons [get]
+func (coup *CouponHandler) Coupons(c *gin.Context) {
+	pageStr := c.Query("page")
+	page, err := strconv.Atoi(pageStr)
+	if err != nil {
+		errorRes := response.ClientResponse(http.StatusBadRequest, "page number not in right format", nil, err.Error())
+		c.JSON(http.StatusBadRequest, errorRes)
+		return
+	}
+	limitStr := c.Query("limit")
+	limit, err := strconv.Atoi(limitStr)
+	if err != nil {
+		errorRes := response.ClientResponse(http.StatusBadRequest, "page number not in right format", nil, err.Error())
+		c.JSON(http.StatusBadRequest, errorRes)
+		return
+	}
+	//change
+	coupons, err := coup.couponUsecase.GetCoupons(page, limit)
+	if err != nil {
+		errorRes := response.ClientResponse(http.StatusBadRequest, "could not retrieve records", nil, err.Error())
+		c.JSON(http.StatusBadRequest, errorRes)
+		return
+	}
+	successRes := response.ClientResponse(http.StatusOK, "Successfully retrieved the coupons", coupons, nil)
+	c.JSON(http.StatusOK, successRes)
+}

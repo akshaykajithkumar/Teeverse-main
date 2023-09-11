@@ -1,10 +1,12 @@
 package usecase
 
 import (
+	"Teeverse/pkg/domain"
 	interfaces "Teeverse/pkg/repository/interface"
 	services "Teeverse/pkg/usecase/interface"
 	"Teeverse/pkg/utils/models"
 	"errors"
+	"strconv"
 )
 
 type inventoryUseCase struct {
@@ -59,45 +61,84 @@ func (i *inventoryUseCase) DeleteInventory(inventoryID string) error {
 
 }
 
-func (i *inventoryUseCase) ShowIndividualProducts(id string) (models.Inventory, error) {
+func (i *inventoryUseCase) ShowIndividualProducts(id string) (models.InventoryDetails, error) {
 
 	product, err := i.repository.ShowIndividualProducts(id)
 	if err != nil {
-		return models.Inventory{}, err
+		return models.InventoryDetails{}, err
 	}
+	productID, err := strconv.Atoi(id)
+	if err != nil {
+		return models.InventoryDetails{}, err
+	}
+	var AdditionalImages []models.ImageInfo
+	AdditionalImages, err = i.repository.GetImagesFromInventoryID(productID)
+	if err != nil {
+		return models.InventoryDetails{}, err
+	}
+	InvDetails := models.InventoryDetails{Inventory: product, AdditionalImages: AdditionalImages}
 
-	return product, nil
+	return InvDetails, nil
 
 }
 
-func (i *inventoryUseCase) ListProducts(page int, limit int) ([]models.Inventory, error) {
+func (i *inventoryUseCase) ListProducts(page int, limit int) ([]models.InventoryList, error) {
 
 	productDetails, err := i.repository.ListProducts(page, limit)
 	if err != nil {
-		return []models.Inventory{}, err
+		return []models.InventoryList{}, err
 	}
 	return productDetails, nil
 
 }
 
-func (i *inventoryUseCase) SearchProducts(key string, page, limit int) ([]models.Inventory, error) {
+func (i *inventoryUseCase) SearchProducts(key string, page, limit int, sortBY string) ([]models.InventoryList, error) {
 
-	productDetails, err := i.repository.SearchProducts(key, page, limit)
+	productDetails, err := i.repository.SearchProducts(key, page, limit, sortBY)
 	if err != nil {
-		return []models.Inventory{}, err
+		return []models.InventoryList{}, err
 	}
 
 	return productDetails, nil
 
 }
 
-func (i *inventoryUseCase) GetCategoryProducts(catID int, page, limit int) ([]models.Inventory, error) {
+func (i *inventoryUseCase) GetCategoryProducts(catID int, page, limit int) ([]models.InventoryList, error) {
 
 	productDetails, err := i.repository.GetCategoryProducts(catID, page, limit)
 	if err != nil {
-		return []models.Inventory{}, err
+		return []models.InventoryList{}, err
 	}
 
 	return productDetails, nil
+
+}
+func (i *inventoryUseCase) GetCategories(page, limit int) ([]domain.Category, error) {
+	categories, err := i.repository.GetCategories(page, limit)
+	if err != nil {
+		return []domain.Category{}, err
+	}
+	return categories, nil
+}
+
+func (i *inventoryUseCase) AddImage(product_id int, imageURL string) (models.InventoryResponse, error) {
+
+	InventoryResponse, err := i.repository.AddImage(product_id, imageURL)
+	if err != nil {
+		return models.InventoryResponse{}, err
+	}
+
+	return InventoryResponse, nil
+
+}
+
+func (i *inventoryUseCase) DeleteImage(product_id int, image_id int) error {
+
+	err := i.repository.DeleteImage(product_id, image_id)
+	if err != nil {
+		return err
+	}
+
+	return nil
 
 }

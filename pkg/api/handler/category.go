@@ -54,7 +54,7 @@ func (Cat *CategoryHandler) AddCategory(c *gin.Context) {
 // @Security		Bearer
 // @Success		200	{object}	response.Response{}
 // @Failure		500	{object}	response.Response{}
-// @Router			/admin/category/update [put]
+// @Router			/admin/category/update [patch]
 func (Cat *CategoryHandler) UpdateCategory(c *gin.Context) {
 
 	var updateCategory models.SetNewName
@@ -114,6 +114,42 @@ func (Cat *CategoryHandler) DeleteCategory(c *gin.Context) {
 // @Failure		500	{object}	response.Response{}
 // @Router			/admin/category [get]
 func (cat *CategoryHandler) Categories(c *gin.Context) {
+	pageStr := c.Query("page")
+	page, err := strconv.Atoi(pageStr)
+	if err != nil {
+		errorRes := response.ClientResponse(http.StatusBadRequest, "page number not in right format", nil, err.Error())
+		c.JSON(http.StatusBadRequest, errorRes)
+		return
+	}
+	limitStr := c.Query("limit")
+	limit, err := strconv.Atoi(limitStr)
+	if err != nil {
+		errorRes := response.ClientResponse(http.StatusBadRequest, "page number not in right format", nil, err.Error())
+		c.JSON(http.StatusBadRequest, errorRes)
+		return
+	}
+	categories, err := cat.CategoryUseCase.GetCategories(page, limit)
+	if err != nil {
+		errorRes := response.ClientResponse(http.StatusBadRequest, "could not retrieve records", nil, err.Error())
+		c.JSON(http.StatusBadRequest, errorRes)
+		return
+	}
+	successRes := response.ClientResponse(http.StatusOK, "Successfully retrieved the categories", categories, nil)
+	c.JSON(http.StatusOK, successRes)
+}
+
+// @Summary		List Categories
+// @Description	User can view the list of  Categories
+// @Tags			Products
+// @Accept			json
+// @Produce		    json
+// @Param			page	query  string 	true	"page"
+// @Param			limit	query  string 	true	"limit"
+// @Security		Bearer
+// @Success		200	{object}	response.Response{}
+// @Failure		500	{object}	response.Response{}
+// @Router			/products/category [get]
+func (cat *CategoryHandler) CategoriesList(c *gin.Context) {
 	pageStr := c.Query("page")
 	page, err := strconv.Atoi(pageStr)
 	if err != nil {

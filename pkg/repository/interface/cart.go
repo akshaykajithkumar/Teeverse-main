@@ -10,6 +10,6 @@ type CartRepository interface {
 	CheckIfInvAdded(invID, cartID int) bool
 	GetCartId(user_id int) (int, error)
 	CreateNewCart(user_id int) (int, error)
-	AddLineItems(cart_id, inventory_id int) error
+	AddLineItems(invID, cartID int) error
 	AddQuantity(invID, cartID int) error
 }

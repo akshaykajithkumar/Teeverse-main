@@ -48,7 +48,6 @@ func (i *OrderHandler) GetOrders(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, errorRes)
 		return
 	}
-
 	id, err := helper.GetUserID(c)
 	if err != nil {
 		errorRes := response.ClientResponse(http.StatusBadRequest, "Could not get userID", nil, err.Error())
@@ -76,6 +75,7 @@ func (i *OrderHandler) GetOrders(c *gin.Context) {
 // @Tags			User
 // @Accept			json
 // @Produce		    json
+// @Param			coupon	query	string	false	"coupon"
 // @Param			order	body	models.Order	true	"order"
 // @Security		Bearer
 // @Success		200	{object}	response.Response{}
@@ -89,6 +89,14 @@ func (i *OrderHandler) OrderItemsFromCart(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, errorRes)
 		return
 	}
+
+	coupon := c.Query("coupon")
+	if err != nil {
+		errorRes := response.ClientResponse(http.StatusBadRequest, "conversion to integer not possible", nil, err.Error())
+		c.JSON(http.StatusBadRequest, errorRes)
+		return
+	}
+
 	var order models.Order
 	if err := c.BindJSON(&order); err != nil {
 		errorRes := response.ClientResponse(http.StatusBadRequest, "fields provided are in wrong format", nil, err.Error())
@@ -97,7 +105,7 @@ func (i *OrderHandler) OrderItemsFromCart(c *gin.Context) {
 	}
 
 	//move
-	retString, err := i.orderUseCase.OrderItemsFromCart(userID, order)
+	retString, err := i.orderUseCase.OrderItemsFromCart(userID, order, coupon)
 	if err != nil {
 		errorRes := response.ClientResponse(http.StatusBadRequest, "could not make the order", nil, err.Error())
 		c.JSON(http.StatusBadRequest, errorRes)
@@ -112,20 +120,27 @@ func (i *OrderHandler) OrderItemsFromCart(c *gin.Context) {
 // @Tags			User
 // @Accept			json
 // @Produce		    json
+// @Param			orderid  query  string  true	"order id"
 // @Security		Bearer
 // @Success		200	{object}	response.Response{}
 // @Failure		500	{object}	response.Response{}
-// @Router			/users/profile/orders [delete]
+// @Router			/users/profile/orders/cancel [post]
 func (i *OrderHandler) CancelOrder(c *gin.Context) {
-
+	//change
 	id, err := helper.GetUserID(c)
 	if err != nil {
 		errorRes := response.ClientResponse(http.StatusBadRequest, "Could not get userID", nil, err.Error())
 		c.JSON(http.StatusBadRequest, errorRes)
 		return
 	}
+	orderid, err := strconv.Atoi(c.Query("orderid"))
+	if err != nil {
+		errorRes := response.ClientResponse(http.StatusBadRequest, "conversion to integer not possible", nil, err.Error())
+		c.JSON(http.StatusBadRequest, errorRes)
+		return
+	}
 
-	if err := i.orderUseCase.CancelOrder(id); err != nil {
+	if err := i.orderUseCase.CancelOrder(id, orderid); err != nil {
 		errorRes := response.ClientResponse(http.StatusBadRequest, "fields provided are in wrong format", nil, err.Error())
 		c.JSON(http.StatusBadRequest, errorRes)
 		return
@@ -146,7 +161,7 @@ func (i *OrderHandler) CancelOrder(c *gin.Context) {
 // @Security		Bearer
 // @Success		200	{object}	response.Response{}
 // @Failure		500	{object}	response.Response{}
-// @Router			/admin/orders/edit/status [put]
+// @Router			/admin/orders/edit/status [patch]
 func (i *OrderHandler) EditOrderStatus(c *gin.Context) {
 
 	status := c.Query("status")
@@ -167,12 +182,41 @@ func (i *OrderHandler) EditOrderStatus(c *gin.Context) {
 
 }
 
+// @Summary		Update Payment Status
+// @Description	Admin can change the status of the payment
+// @Tags			Admin
+// @Accept			json
+// @Produce		    json
+// @Param			orderID  query  string  true	"order id"
+// @Security		Bearer
+// @Success		200	{object}	response.Response{}
+// @Failure		500	{object}	response.Response{}
+// @Router			/admin/orders/edit/mark-as-paid [patch]
+func (i *OrderHandler) MarkAsPaid(c *gin.Context) {
+
+	orderID, err := strconv.Atoi(c.Query("orderID"))
+	if err != nil {
+		errorRes := response.ClientResponse(http.StatusBadRequest, "conversion to integer not possible", nil, err.Error())
+		c.JSON(http.StatusBadRequest, errorRes)
+		return
+	}
+	if err := i.orderUseCase.MarkAsPaid(orderID); err != nil {
+		errorRes := response.ClientResponse(http.StatusBadRequest, "fields provided are in wrong format", nil, err.Error())
+		c.JSON(http.StatusBadRequest, errorRes)
+		return
+	}
+	successRes := response.ClientResponse(http.StatusOK, "Successfully edited the payment status", nil, nil)
+	c.JSON(http.StatusOK, successRes)
+
+}
+
 // @Summary		Admin Orders
 // @Description	Admin can view the orders according to status
 // @Tags			Admin
 // @Produce		    json
 // @Param			page	query  string 	true	"page"
 // @Param			limit	query  string 	true	"limit"
+// @Param			status	query  string	true	"status"
 // @Security		Bearer
 // @Success		200	{object}	response.Response{}
 // @Failure		500	{object}	response.Response{}
@@ -192,7 +236,9 @@ func (i *OrderHandler) AdminOrders(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, errorRes)
 		return
 	}
-	orders, err := i.orderUseCase.AdminOrders(page, limit)
+	status := c.Query("status")
+
+	orders, err := i.orderUseCase.AdminOrders(page, limit, status)
 	if err != nil {
 		errorRes := response.ClientResponse(http.StatusBadRequest, "could not retrieve records", nil, err.Error())
 		c.JSON(http.StatusBadRequest, errorRes)
@@ -319,7 +365,7 @@ func (i *OrderHandler) AdminSalesCustomReport(c *gin.Context) {
 // @Param			id  query  string  true	"id"
 // @Success		200	{object}	response.Response{}
 // @Failure		500	{object}	response.Response{}
-// @Router			/users/profile/orders/return [put]
+// @Router			/users/profile/orders/return [post]
 func (i *OrderHandler) ReturnOrder(c *gin.Context) {
 
 	id, err := strconv.Atoi(c.Query("id"))
@@ -348,7 +394,7 @@ func (i *OrderHandler) ReturnOrder(c *gin.Context) {
 // @Router /users/check-out/order/download-invoice  [get]
 func (i *OrderHandler) DownloadInvoice(c *gin.Context) {
 	// Set the appropriate headers for the file download
-	c.Header("Content-Disposition", "attachment; filename= teeverse_invoice.pdf")
+	c.Header("Content-Disposition", "attachment; filename=teeverse_invoice.pdf")
 	c.Header("Content-Type", "application/pdf")
 
 	// Read the PDF file and write it to the response

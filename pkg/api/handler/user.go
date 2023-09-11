@@ -68,7 +68,7 @@ func (i *UserHandler) AddAddress(c *gin.Context) {
 // @Security		Bearer
 // @Success		200	{object}	response.Response{}
 // @Failure		500	{object}	response.Response{}
-// @Router			/users/profile/security/change-password [put]
+// @Router			/users/profile/security/change-password [patch]
 func (i *UserHandler) ChangePassword(c *gin.Context) {
 
 	id, err := helper.GetUserID(c)
@@ -96,17 +96,17 @@ func (i *UserHandler) ChangePassword(c *gin.Context) {
 
 }
 
-// @Summary		Edit Email
-// @Description	user can change their Email
+// @Summary		Edit User
+// @Description	user can change their Details
 // @Tags			User
 // @Accept			json
 // @Produce		    json
-// @Param			model  body  models.EditEmail true	"edit-email"
+// @Param			userData  body  models.EditUser true	"edit-user"
 // @Security		Bearer
 // @Success		200	{object}	response.Response{}
 // @Failure		500	{object}	response.Response{}
-// @Router			/users/profile/edit/email [put]
-func (i *UserHandler) EditEmail(c *gin.Context) {
+// @Router			/users/profile/edit [patch]
+func (i *UserHandler) EditUser(c *gin.Context) {
 
 	id, err := helper.GetUserID(c)
 	if err != nil {
@@ -115,94 +115,20 @@ func (i *UserHandler) EditEmail(c *gin.Context) {
 		return
 	}
 
-	var model models.EditEmail
-	if err := c.BindJSON(&model); err != nil {
+	var userData models.EditUser
+	if err := c.BindJSON(&userData); err != nil {
 		errorRes := response.ClientResponse(http.StatusBadRequest, "fields provided are in wrong format", nil, err.Error())
 		c.JSON(http.StatusBadRequest, errorRes)
 		return
 	}
 
-	if err := i.userUseCase.EditEmail(id, model.Email); err != nil {
-		errorRes := response.ClientResponse(http.StatusBadRequest, "Could not change the Email", nil, err.Error())
+	if err := i.userUseCase.EditUser(id, userData); err != nil {
+		errorRes := response.ClientResponse(http.StatusBadRequest, "Could not change the User Details", nil, err.Error())
 		c.JSON(http.StatusBadRequest, errorRes)
 		return
 	}
 
-	successRes := response.ClientResponse(http.StatusOK, "Successfully changed the Email", nil, nil)
-	c.JSON(http.StatusOK, successRes)
-
-}
-
-// @Summary		Edit Name
-// @Description	user can change their name
-// @Tags			User
-// @Accept			json
-// @Produce		    json
-// @Param			model  body  models.EditName  true	"edit-name"
-// @Security		Bearer
-// @Success		200	{object}	response.Response{}
-// @Failure		500	{object}	response.Response{}
-// @Router			/users/profile/edit/name [put]
-func (i *UserHandler) EditName(c *gin.Context) {
-
-	id, err := helper.GetUserID(c)
-	if err != nil {
-		errorRes := response.ClientResponse(http.StatusBadRequest, "Could not get userID", nil, err.Error())
-		c.JSON(http.StatusBadRequest, errorRes)
-		return
-	}
-
-	var model models.EditName
-	if err := c.BindJSON(&model); err != nil {
-		errorRes := response.ClientResponse(http.StatusBadRequest, "fields provided are in wrong format", nil, err.Error())
-		c.JSON(http.StatusBadRequest, errorRes)
-		return
-	}
-
-	if err := i.userUseCase.EditName(id, model.Name); err != nil {
-		errorRes := response.ClientResponse(http.StatusBadRequest, "Could not change the name", nil, err.Error())
-		c.JSON(http.StatusBadRequest, errorRes)
-		return
-	}
-
-	successRes := response.ClientResponse(http.StatusOK, "Successfully changed the name", nil, nil)
-	c.JSON(http.StatusOK, successRes)
-
-}
-
-// @Summary		Edit Phone
-// @Description	user can change their Phone
-// @Tags			User
-// @Accept			json
-// @Produce		    json
-// @Param			model  body  models.EditPhone true	"edit-phone"
-// @Security		Bearer
-// @Success		200	{object}	response.Response{}
-// @Failure		500	{object}	response.Response{}
-// @Router			/users/profile/edit/phone [put]
-func (i *UserHandler) EditPhone(c *gin.Context) {
-
-	id, err := helper.GetUserID(c)
-	if err != nil {
-		errorRes := response.ClientResponse(http.StatusBadRequest, "Could not get userID", nil, err.Error())
-		c.JSON(http.StatusBadRequest, errorRes)
-		return
-	}
-
-	var model models.EditPhone
-	if err := c.BindJSON(&model); err != nil {
-		errorRes := response.ClientResponse(http.StatusBadRequest, "fields provided are in wrong format", nil, err.Error())
-		c.JSON(http.StatusBadRequest, errorRes)
-		return
-	}
-
-	if err := i.userUseCase.EditPhone(id, model.Phone); err != nil {
-		errorRes := response.ClientResponse(http.StatusBadRequest, "Could not change the Phone", nil, err.Error())
-		c.JSON(http.StatusBadRequest, errorRes)
-		return
-	}
-
-	successRes := response.ClientResponse(http.StatusOK, "Successfully changed the Phone", nil, nil)
+	successRes := response.ClientResponse(http.StatusOK, "Successfully changed the User Data", nil, nil)
 	c.JSON(http.StatusOK, successRes)
 
 }
@@ -330,7 +256,8 @@ func (i *UserHandler) Login(c *gin.Context) {
 	}
 
 	successRes := response.ClientResponse(http.StatusOK, "User successfully logged in", userDetails, nil)
-	c.SetCookie("Authorization", userDetails.Token, 3600, "", "", false, false)
+	//c.SetCookie("Authorization", userDetails.Token, 3600, "/", "teeverse.online", true, false)
+	c.SetCookie("Authorization", userDetails.Token, 3600, "", "", true, false)
 	c.JSON(http.StatusOK, successRes)
 }
 
@@ -417,7 +344,7 @@ func (i *UserHandler) SignUp(c *gin.Context) {
 // @Security		Bearer
 // @Success		200	{object}	response.Response{}
 // @Failure		500	{object}	response.Response{}
-// @Router			/users/cart/updateQuantity/plus [put]
+// @Router			/users/cart/updateQuantity/plus [post]
 func (i *UserHandler) UpdateQuantityAdd(c *gin.Context) {
 	id, err := helper.GetUserID(c)
 	if err != nil {
@@ -459,7 +386,7 @@ func (i *UserHandler) UpdateQuantityAdd(c *gin.Context) {
 // @Security		Bearer
 // @Success		200	{object}	response.Response{}
 // @Failure		500	{object}	response.Response{}
-// @Router			/users/cart/updateQuantity/minus [put]
+// @Router			/users/cart/updateQuantity/minus [post]
 func (i *UserHandler) UpdateQuantityLess(c *gin.Context) {
 	id, err := helper.GetUserID(c)
 	if err != nil {
@@ -489,5 +416,64 @@ func (i *UserHandler) UpdateQuantityLess(c *gin.Context) {
 	}
 
 	successRes := response.ClientResponse(http.StatusOK, "Successfully subtracted quantity", nil, nil)
+	c.JSON(http.StatusOK, successRes)
+}
+
+// @Summary		Get Wallet
+// @Description	user can get wallet details and history
+// @Tags			User
+// @Accept			json
+// @Produce		    json
+// @Param			page	query  string 	true	"page"
+// @Param			limit	query  string 	true	"limit"// @Security		Bearer
+// @Success		200	{object}	response.Response{}
+// @Failure		500	{object}	response.Response{}
+// @Router			/users/profile/wallet [get]
+func (i *UserHandler) GetWallet(c *gin.Context) {
+	pageStr := c.Query("page")
+	page, err := strconv.Atoi(pageStr)
+	if err != nil {
+		errorRes := response.ClientResponse(http.StatusBadRequest, "page number not in right format", nil, err.Error())
+		c.JSON(http.StatusBadRequest, errorRes)
+		return
+	}
+	limitStr := c.Query("limit")
+	limit, err := strconv.Atoi(limitStr)
+	if err != nil {
+		errorRes := response.ClientResponse(http.StatusBadRequest, "limit number not in right format", nil, err.Error())
+		c.JSON(http.StatusBadRequest, errorRes)
+		return
+	}
+
+	id, err := helper.GetUserID(c)
+	if err != nil {
+		errorRes := response.ClientResponse(http.StatusBadRequest, "Could not get userID", nil, err.Error())
+		c.JSON(http.StatusBadRequest, errorRes)
+		return
+	}
+	wallet, err := i.userUseCase.GetWallet(id, page, limit)
+	if err != nil {
+		errorRes := response.ClientResponse(http.StatusBadRequest, "could not retrieve wallet", nil, err.Error())
+		c.JSON(http.StatusBadRequest, errorRes)
+		return
+	}
+	successRes := response.ClientResponse(http.StatusOK, "Successfully got wallet", wallet, nil)
+	c.JSON(http.StatusOK, successRes)
+}
+
+// Login is a handler for user login
+// @Summary		User Logout
+// @Description	user can log in by giving their details
+// @Tags			User
+// @Accept			json
+// @Produce		    json
+// @Success		200	{object}	response.Response{}
+// @Failure		500	{object}	response.Response{}
+// @Router			/users/logout [post]
+func (i *UserHandler) Logout(c *gin.Context) {
+
+	successRes := response.ClientResponse(http.StatusOK, "User successfully logged out", nil, nil)
+	//c.SetCookie("Authorization", userDetails.Token, 3600, "/", "teeverse.online", true, false)
+	c.SetCookie("Authorization", "", -1, "", "", true, false)
 	c.JSON(http.StatusOK, successRes)
 }

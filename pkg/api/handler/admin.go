@@ -46,7 +46,8 @@ func (ad *AdminHandler) LoginHandler(c *gin.Context) { // login handler for the 
 		return
 	}
 	c.SetSameSite(http.SameSiteLaxMode)
-	c.SetCookie("Authorization", admin.Token, 3600, "", "", false, false)
+	//c.SetCookie("Authorization", admin.Token, 3600, "/", "teeverse.online", true, false)
+	c.SetCookie("Authorization", admin.Token, 3600, "/", "", true, false)
 
 	successRes := response.ClientResponse(http.StatusOK, "Admin authenticated successfully", admin, nil)
 	c.JSON(http.StatusOK, successRes)
@@ -139,4 +140,21 @@ func (ad *AdminHandler) GetUsers(c *gin.Context) {
 	successRes := response.ClientResponse(http.StatusOK, "Successfully retrieved the users", users, nil)
 	c.JSON(http.StatusOK, successRes)
 
+}
+
+// Logout is a handler for admin logout
+// @Summary		admin Logout
+// @Description	admin can logout
+// @Tags			Admin
+// @Accept			json
+// @Produce		    json
+// @Success		200	{object}	response.Response{}
+// @Failure		500	{object}	response.Response{}
+// @Router			/admin/logout [post]
+func (ad *AdminHandler) Logout(c *gin.Context) {
+
+	successRes := response.ClientResponse(http.StatusOK, "admin successfully logged out", nil, nil)
+	//c.SetCookie("Authorization", userDetails.Token, 3600, "/", "teeverse.online", true, false)
+	c.SetCookie("Authorization", "", -1, "", "", true, false)
+	c.JSON(http.StatusOK, successRes)
 }

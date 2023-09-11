@@ -6,7 +6,6 @@ import (
 
 	"gorm.io/gorm"
 )
-
 type cartRepository struct {
 	DB *gorm.DB
 }

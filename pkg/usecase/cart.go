@@ -4,6 +4,7 @@ import (
 	interfaces "Teeverse/pkg/repository/interface"
 	services "Teeverse/pkg/usecase/interface"
 	"errors"
+	"fmt"
 
 	"Teeverse/pkg/utils/models"
 )
@@ -47,6 +48,7 @@ func (i *cartUseCase) AddToCart(user_id, inventory_id int) error {
 			return errors.New("cannot create cart from user")
 		}
 	}
+
 	//check if already added
 	if i.repo.CheckIfInvAdded(inventory_id, cart_id) {
 		err := i.repo.AddQuantity(inventory_id, cart_id)
@@ -70,17 +72,18 @@ func (i *cartUseCase) CheckOut(id int) (models.CheckOut, error) {
 	if err != nil {
 		return models.CheckOut{}, err
 	}
+	fmt.Println(address)
 	//cartchange
 	products, err := i.userUseCase.GetCart(id, 0, 0)
 	if err != nil {
 		return models.CheckOut{}, err
 	}
-
+	fmt.Println(products)
 	paymentmethods, err := i.paymentUseCase.GetPaymentMethods()
 	if err != nil {
 		return models.CheckOut{}, err
 	}
-
+	fmt.Println(products)
 	var price float64
 	for _, v := range products {
 		price = price + v.DiscountedPrice

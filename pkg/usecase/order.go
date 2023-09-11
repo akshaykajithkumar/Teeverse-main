@@ -39,8 +39,8 @@ func (i *orderUseCase) GetOrders(id, page, limit int) ([]domain.Order, error) {
 
 }
 
-func (i *orderUseCase) OrderItemsFromCart(userid int, order models.Order) (string, error) {
-	//cartchange
+func (i *orderUseCase) OrderItemsFromCart(userid int, order models.Order, coupon string) (string, error) {
+	//change cart
 	cart, err := i.userUseCase.GetCart(userid, 0, 0)
 	if err != nil {
 		return "", err
@@ -48,29 +48,36 @@ func (i *orderUseCase) OrderItemsFromCart(userid int, order models.Order) (strin
 
 	var total float64
 	for _, v := range cart {
-		total = total + v.Total
+		total = total + v.DiscountedPrice
+	}
+	fmt.Println("Total without coupon", total)
+	if coupon != "" && coupon != " " {
+		valid, err := i.couponRepo.ValidateCoupon(coupon)
+		if err != nil || !valid {
+			return "Invalid Coupon", err
+		}
+
+		//finding discount if any
+		DiscountRate := i.couponRepo.FindCouponDiscount(coupon)
+
+		if DiscountRate > 0 {
+			totalDiscount := total * float64(DiscountRate) / 100.00
+			fmt.Println("Discount", DiscountRate, "Total discount", totalDiscount, (DiscountRate / 100), int(total), int(DiscountRate/100))
+			total = total - totalDiscount
+		}
 	}
 
-	//finding discount if any
-	DiscountRate := i.couponRepo.FindCouponDiscount(order.CouponID)
-	if DiscountRate > 0 {
-		totalDiscount := (total * float64(DiscountRate)) / 100
-		total = total - totalDiscount
-	} else {
-		totalDiscount := 0.0
-		total = total - totalDiscount
-	}
-
+	fmt.Println("Total amount", total)
 	var invoiceItems []*internal.InvoiceData
 	for _, v := range cart {
-		inventory, err := internal.NewInvoiceData(v.ProductName, int(v.Quantity), v.Total)
+		inventory, err := internal.NewInvoiceData(v.ProductName, int(v.Quantity), (v.DiscountedPrice))
 		if err != nil {
 			panic(err)
 		}
 		invoiceItems = append(invoiceItems, inventory)
 	}
 	// Create single invoice
-	invoice := internal.CreateInvoice("Teeverse", "www.Teeverse.store", invoiceItems)
+	invoice := internal.CreateInvoice("Teeverse", "www.teeverse.online", invoiceItems)
 	internal.GenerateInvoicePdf(*invoice)
 	fmt.Printf("The Total Invoice Amount is: %f", invoice.CalculateInvoiceTotalAmount())
 
@@ -103,19 +110,44 @@ func (i *orderUseCase) OrderItemsFromCart(userid int, order models.Order) (strin
 		return link, err
 	}
 
-	//wallet
+	if order.PaymentID == 4 {
+		order_id, err := i.orderRepository.OrderItems(userid, order, total)
+		if err != nil {
+			return "", err
+		}
+
+		if err := i.orderRepository.AddOrderProducts(order_id, cart); err != nil {
+			return "", err
+		}
+
+		walletID, err := i.walletRepo.FindWalletIdFromUserID(userid)
+		if err != nil {
+			return "", err
+		}
+		bal, err := i.walletRepo.GetBalance(walletID)
+		if err != nil {
+			return "", err
+		}
+		if float64(bal) < total {
+			return "Insufficient Balance on wallet", errors.New("insufficient balance")
+		}
+
+		newBal, err := i.walletRepo.PayFromWallet(userid, order_id, total)
+		if err != nil {
+			return "", err
+		}
+
+		i.walletRepo.AddHistory(int(total*-1), walletID, "Placed order")
+
+		cartID, _ := i.userUseCase.GetCartID(userid)
+		if err := i.userUseCase.ClearCart(cartID); err != nil {
+			return "", err
+		}
+		return fmt.Sprintf("%f Rs paid from Wallet. New Balance is %f", total, newBal), nil
+
+	}
 
 	return "", nil
-
-}
-
-func (i *orderUseCase) CancelOrder(id int) error {
-
-	err := i.orderRepository.CancelOrder(id)
-	if err != nil {
-		return err
-	}
-	return nil
 
 }
 
@@ -129,41 +161,28 @@ func (i *orderUseCase) EditOrderStatus(status string, id int) error {
 
 }
 
-func (i *orderUseCase) AdminOrders(page, limit int) (domain.AdminOrdersResponse, error) {
+func (i *orderUseCase) MarkAsPaid(orderID int) error {
 
-	var response domain.AdminOrdersResponse
-
-	pending, err := i.orderRepository.AdminOrders("PENDING")
+	err := i.orderRepository.MarkAsPaid(orderID)
 	if err != nil {
-		return domain.AdminOrdersResponse{}, err
+		return err
+	}
+	return nil
+
+}
+
+func (i *orderUseCase) AdminOrders(page, limit int, status string) ([]domain.OrderDetails, error) {
+
+	if status != "PENDING" && status != "SHIPPED" && status != "CANCELLED" && status != "RETURNED" && status != "DELIVERED" {
+		return []domain.OrderDetails{}, errors.New("invalid status type")
+
+	}
+	orders, err := i.orderRepository.AdminOrders(page, limit, status)
+	if err != nil {
+		return []domain.OrderDetails{}, err
 	}
 
-	shipped, err := i.orderRepository.AdminOrders("SHIPPED")
-	if err != nil {
-		return domain.AdminOrdersResponse{}, err
-	}
-
-	delivered, err := i.orderRepository.AdminOrders("DELIVERED")
-	if err != nil {
-		return domain.AdminOrdersResponse{}, err
-	}
-
-	canceled, err := i.orderRepository.AdminOrders("CANCELED")
-	if err != nil {
-		return domain.AdminOrdersResponse{}, err
-	}
-
-	returned, err := i.orderRepository.AdminOrders("RETURNED")
-	if err != nil {
-		return domain.AdminOrdersResponse{}, err
-	}
-
-	response.Canceled = canceled
-	response.Pending = pending
-	response.Shipped = shipped
-	response.Delivered = delivered
-	response.Returned = returned
-	return response, nil
+	return orders, nil
 
 }
 
@@ -320,7 +339,7 @@ func (i *orderUseCase) ReturnOrder(id int) error {
 
 	//should check if the order is already returned peoples will misuse this security breach
 	// and will get  unlimited money into their wallet
-	status, err := i.orderRepository.CheckIfTheOrderIsAlreadyReturned(id)
+	status, err := i.orderRepository.CheckOrderStatus(id)
 	if err != nil {
 		return err
 	}
@@ -369,6 +388,74 @@ func (i *orderUseCase) ReturnOrder(id int) error {
 	}
 	//credit the amount into users wallet
 	if err := i.walletRepo.CreditToUserWallet(amount, walletID); err != nil {
+		return err
+	}
+	if err := i.walletRepo.AddHistory(int(amount), walletID, "Return Refund"); err != nil {
+		return err
+	}
+	return nil
+
+}
+
+func (i *orderUseCase) CancelOrder(id, orderid int) error {
+
+	//should check if the order is already returned peoples will misuse this security breach
+	// and will get  unlimited money into their wallet
+	status, err := i.orderRepository.CheckOrderStatus(orderid)
+	if err != nil {
+		return err
+	}
+
+	if status == "CANCELLED" {
+		return errors.New("order already cancelled")
+	}
+	if status == "DELIVERED" {
+		return errors.New("order already delivered")
+	}
+	//should also check if the order is already returned
+	//or users will also earn money by returning pending orders by opting COD
+
+	if status == "PENDING" || status == "SHIPPED" {
+
+		//make order as returned order
+		if err := i.orderRepository.CancelOrder(orderid); err != nil {
+			return err
+		}
+	}
+
+	//checkif alreadypaid
+	paymentStatus, err := i.orderRepository.CheckPaymentStatus(orderid)
+	if err != nil {
+		return err
+	}
+	if paymentStatus != "PAID" {
+		return nil
+	}
+
+	//find amount to be credited to user
+	amount, err := i.orderRepository.FindAmountFromOrderID(id)
+	fmt.Println(amount)
+	if err != nil {
+		return err
+	}
+	//find if the user having a wallet
+	walletID, err := i.walletRepo.FindWalletIdFromUserID(id)
+	fmt.Println(walletID)
+	if err != nil {
+		return err
+	}
+	//if no wallet create new one
+	if walletID == 0 {
+		walletID, err = i.walletRepo.CreateNewWallet(id)
+		if err != nil {
+			return err
+		}
+	}
+	//credit the amount into users wallet
+	if err := i.walletRepo.CreditToUserWallet(amount, walletID); err != nil {
+		return err
+	}
+	if err := i.walletRepo.AddHistory(int(amount), walletID, "Cancellation Refund"); err != nil {
 		return err
 	}
 

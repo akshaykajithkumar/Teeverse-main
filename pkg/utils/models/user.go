@@ -44,16 +44,11 @@ type ChangePassword struct {
 	Repassword  string `json:"re_password"`
 }
 
-type EditName struct {
-	Name string `json:"name"`
-}
-
-type EditEmail struct {
-	Email string `json:"email"`
-}
-
-type EditPhone struct {
-	Phone string `json:"phone"`
+type EditUser struct {
+	Name     string `json:"name"`
+	Username string `json:"username"`
+	Email    string `json:"email"`
+	Phone    string `json:"phone"`
 }
 
 type UserKey string

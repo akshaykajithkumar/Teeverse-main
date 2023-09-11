@@ -12,6 +12,7 @@ func AdminRoutes(engine *gin.RouterGroup, adminHandler *handler.AdminHandler /*u
 
 	engine.Use(middleware.AdminAuthMiddleware)
 	{
+		engine.POST("/logout", adminHandler.Logout)
 		usermanagement := engine.Group("/users")
 		{
 			usermanagement.POST("/block", adminHandler.BlockUser)
@@ -23,7 +24,7 @@ func AdminRoutes(engine *gin.RouterGroup, adminHandler *handler.AdminHandler /*u
 		{
 			categorymanagement.GET("/", categoryHandler.Categories)
 			categorymanagement.POST("/add", categoryHandler.AddCategory)
-			categorymanagement.PUT("/update", categoryHandler.UpdateCategory)
+			categorymanagement.PATCH("/update", categoryHandler.UpdateCategory)
 			categorymanagement.DELETE("/delete", categoryHandler.DeleteCategory)
 		}
 
@@ -32,12 +33,15 @@ func AdminRoutes(engine *gin.RouterGroup, adminHandler *handler.AdminHandler /*u
 			//inventorymanagement.GET("", inventoryHandler.ListProducts)
 			//inventorymanagement.GET("/details", inventoryHandler.ShowIndividualProducts)
 			inventorymanagement.POST("/add", inventoryHandler.AddInventory)
-			inventorymanagement.PUT("/update", inventoryHandler.UpdateInventory)
+			inventorymanagement.PATCH("/update", inventoryHandler.UpdateInventory)
+			inventorymanagement.POST("/add-image", inventoryHandler.AddImage)
+			inventorymanagement.DELETE("/delete-image", inventoryHandler.DeleteImage)
 			inventorymanagement.DELETE("/delete", inventoryHandler.DeleteInventory)
 		}
 		orders := engine.Group("/orders")
 		{
-			orders.PUT("/edit/status", orderHandler.EditOrderStatus)
+			orders.PATCH("/edit/status", orderHandler.EditOrderStatus)
+			orders.PATCH("/edit/mark-as-paid", orderHandler.MarkAsPaid)
 			orders.GET("", orderHandler.AdminOrders)
 		}
 		paymentmethods := engine.Group("/paymentmethods")
@@ -59,16 +63,19 @@ func AdminRoutes(engine *gin.RouterGroup, adminHandler *handler.AdminHandler /*u
 			products.GET("", inventoryHandler.AdminListProducts)
 			products.GET("/details", inventoryHandler.ShowIndividualProducts)
 			products.GET("/search", inventoryHandler.SearchProducts)
-			products.GET("/category", inventoryHandler.GetCategoryProducts)
+			products.GET("/category", inventoryHandler.GetCategories)
+			products.GET("/category_details", inventoryHandler.GetCategories)
 		}
 		offers := engine.Group("/offers")
 		{
+			offers.GET("", offerHandler.Offers)
 			offers.POST("/create", offerHandler.AddOffer)
 			offers.POST("/expire", offerHandler.ExpireValidity)
 		}
 
 		coupons := engine.Group("/coupons")
 		{
+			coupons.GET("", couponHandler.Coupons)
 			coupons.POST("/create", couponHandler.CreateNewCoupon)
 			coupons.POST("/expire", couponHandler.MakeCouponInvalid)
 		}

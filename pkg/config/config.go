@@ -1,6 +1,9 @@
 package config
 
 import (
+	"log"
+
+	"github.com/joho/godotenv"
 	"github.com/spf13/viper"
 )
 
@@ -31,6 +34,11 @@ func LoadConfig() (Config, error) {
 		if err := viper.BindEnv(env); err != nil {
 			return config, err
 		}
+	}
+
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("error loading the env file")
 	}
 
 	if err := viper.Unmarshal(&config); err != nil {

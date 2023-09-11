@@ -1,7 +1,10 @@
 package repository
 
 import (
+	"Teeverse/pkg/domain"
 	interfaces "Teeverse/pkg/repository/interface"
+	"fmt"
+	"time"
 
 	"gorm.io/gorm"
 )
@@ -18,7 +21,7 @@ func NewWalletRepositoy(DB *gorm.DB) interfaces.WalletRepository {
 
 func (w *walletRepository) CreditToUserWallet(amount float64, walletId int) error {
 
-	if err := w.db.Exec("update wallets set amount=$1 where id=$2", amount, walletId).Error; err != nil {
+	if err := w.db.Exec("update wallets set amount=amount+$1 where id=$2", amount, walletId).Error; err != nil {
 		return err
 	}
 
@@ -70,4 +73,53 @@ func (w *walletRepository) CreateNewWallet(userID int) (int, error) {
 	}
 
 	return wallet_id, nil
+}
+
+func (w *walletRepository) GetBalance(walletID int) (int, error) {
+
+	var balance float64
+	if err := w.db.Raw("select amount from wallets where id=$1", walletID).Scan(&balance).Error; err != nil {
+		return 0, err
+	}
+	fmt.Println(walletID, balance)
+	return int(balance), nil
+}
+
+func (w *walletRepository) GetHistory(walletID, page, limit int) ([]domain.WalletHistory, error) {
+	if page == 0 {
+		page = 1
+	}
+	if limit == 0 {
+		limit = 10
+	}
+	offset := (page - 1) * limit
+	var history []domain.WalletHistory
+	if err := w.db.Raw("select * from wallet_histories where wallet_id=? limit ? offset ?", walletID, limit, offset).Scan(&history).Error; err != nil {
+		return []domain.WalletHistory{}, err
+	}
+
+	return history, nil
+}
+
+func (w *walletRepository) AddHistory(amount, WalletID int, purpose string) error {
+
+	err := w.db.Exec("Insert into wallet_histories(wallet_id,amount,purpose,time) values(?,?,?,?)", WalletID, amount, purpose, time.Now()).Error
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (w *walletRepository) PayFromWallet(userID, orderID int, price float64) (float64, error) {
+	if err := w.db.Exec("UPDATE wallets SET amount=amount-? WHERE user_id=?", price, userID).Error; err != nil {
+		return 0.0, err
+	}
+	if err := w.db.Exec("UPDATE orders SET payment_status='PAID' WHERE id=?", orderID).Error; err != nil {
+		return 0.0, err
+	}
+	var balance float64
+	if err := w.db.Raw("select amount from wallets where user_id=$1", userID).Scan(&balance).Error; err != nil {
+		return 0, err
+	}
+	return balance, nil
 }

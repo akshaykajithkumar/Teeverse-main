@@ -34,6 +34,7 @@ func NewServerHTTP(categoryHandler *handler.CategoryHandler, inventoryHandler *h
 	engine := gin.New()
 	engine.Use(gin.Logger())
 	engine.LoadHTMLGlob("pkg/templates/*.html")
+	engine.Static("/assets", "./assets")
 	engine.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 
 	routes.UserRoutes(engine.Group("/users"), userHandler, otpHandler, inventoryHandler, cartHandler, orderHandler, paymentHandler, wishlistHandler)

@@ -10,5 +10,7 @@ func InventoryRoutes(engine *gin.RouterGroup, inventoryHandler *handler.Inventor
 	engine.GET("", inventoryHandler.ListProducts)
 	engine.GET("/details", inventoryHandler.ShowIndividualProducts)
 	engine.GET("/search", inventoryHandler.SearchProducts)
-	engine.GET("/category", inventoryHandler.GetCategoryProducts)
+	engine.GET("/category", inventoryHandler.GetCategories)
+	engine.GET("/category_details", inventoryHandler.GetCategoryProducts)
+
 }

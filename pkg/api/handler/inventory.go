@@ -66,12 +66,21 @@ func (i *InventoryHandler) AddInventory(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, errorRes)
 		return
 	}
+	uploadPath := "./assets/" + image.Filename
+
+	// Save the uploaded image to the specified path
+	if err := c.SaveUploadedFile(image, uploadPath); err != nil {
+		errorRes := response.ClientResponse(http.StatusInternalServerError, "Could not save uploaded image", nil, err.Error())
+		c.JSON(http.StatusInternalServerError, errorRes)
+		return
+	}
+	imageURL := "http://localhost:1243/assets/" + image.Filename
 	inventory.CategoryID = categoryID
 	inventory.ProductName = product_name
 	inventory.Description = description
 	inventory.Price = price
 	inventory.Stock = stock
-	inventory.Image = image.Filename
+	inventory.Image = imageURL
 
 	InventoryResponse, err := i.InventoryUseCase.AddInventory(inventory, image.Filename)
 	if err != nil {
@@ -84,7 +93,89 @@ func (i *InventoryHandler) AddInventory(c *gin.Context) {
 	c.JSON(http.StatusOK, successRes)
 }
 
-// @Summary		List Products
+// @Summary		Add image to an Inventory
+// @Description	Admin can add new image to product
+// @Tags			Admin
+// @Accept			multipart/form-data
+// @Produce		    json
+// @Param			product_id	formData	string	true	"product_id"
+// @Param           image      formData     file   true   "image"
+// @Security		Bearer
+// @Success		200	{object}	response.Response{}
+// @Failure		500	{object}	response.Response{}
+// @Router			/admin/inventories/add-image [post]
+func (i *InventoryHandler) AddImage(c *gin.Context) {
+
+	product_id, err := strconv.Atoi(c.Request.FormValue("product_id"))
+	if err != nil {
+		errorRes := response.ClientResponse(http.StatusBadRequest, "form file error", nil, err.Error())
+		c.JSON(http.StatusBadRequest, errorRes)
+		return
+	}
+	image, err := c.FormFile("image")
+	if err != nil {
+		errorRes := response.ClientResponse(http.StatusBadRequest, "retrieving image from form error", nil, err.Error())
+		c.JSON(http.StatusBadRequest, errorRes)
+		return
+	}
+
+	uploadPath := "./assets/" + image.Filename
+
+	// Save the uploaded image to the specified path
+	if err := c.SaveUploadedFile(image, uploadPath); err != nil {
+		errorRes := response.ClientResponse(http.StatusInternalServerError, "Could not save uploaded image", nil, err.Error())
+		c.JSON(http.StatusInternalServerError, errorRes)
+		return
+	}
+	imageURL := "http://localhost:1243/assets/" + image.Filename
+	InventoryResponse, err := i.InventoryUseCase.AddImage(product_id, imageURL)
+	if err != nil {
+		errorRes := response.ClientResponse(http.StatusBadRequest, "Could not add the Inventory image", nil, err.Error())
+		c.JSON(http.StatusBadRequest, errorRes)
+		return
+	}
+
+	successRes := response.ClientResponse(http.StatusOK, "Successfully added Inventory image", InventoryResponse, nil)
+	c.JSON(http.StatusOK, successRes)
+}
+
+// @Summary		Delete Inventory image
+// @Description	Admin can delete a product image
+// @Tags			Admin
+// @Accept			json
+// @Produce		    json
+// @Param			product_id	query	string	true	"product_id"
+// @Param			image_id	query	string	true	"image_id"
+// @Security		Bearer
+// @Success		200	{object}	response.Response{}
+// @Failure		500	{object}	response.Response{}
+// @Router			/admin/inventories/delete-image [delete]
+func (i *InventoryHandler) DeleteImage(c *gin.Context) {
+
+	inventoryID, err := strconv.Atoi(c.Query("product_id"))
+	if err != nil {
+		errorRes := response.ClientResponse(http.StatusBadRequest, "image ID   not in right format", nil, err.Error())
+		c.JSON(http.StatusBadRequest, errorRes)
+		return
+	}
+	imageID, err := strconv.Atoi(c.Query("image_id"))
+	if err != nil {
+		errorRes := response.ClientResponse(http.StatusBadRequest, "image ID   not in right format", nil, err.Error())
+		c.JSON(http.StatusBadRequest, errorRes)
+		return
+	}
+	err = i.InventoryUseCase.DeleteImage(inventoryID, imageID)
+	if err != nil {
+		errorRes := response.ClientResponse(http.StatusBadRequest, "Could not remove the Inventory", nil, err.Error())
+		c.JSON(http.StatusBadRequest, errorRes)
+		return
+	}
+
+	successRes := response.ClientResponse(http.StatusOK, "Successfully deleted the inventory image", nil, nil)
+	c.JSON(http.StatusOK, successRes)
+}
+
+// @Summary		List Productss
 // @Description	client can view the list of available products
 // @Tags			Admin
 // @Accept			json
@@ -121,33 +212,38 @@ func (i *InventoryHandler) AdminListProducts(c *gin.Context) {
 }
 
 // @Summary		Search Products
-// @Description	client can search with a key and get the list of  products similar to that key
+// @Description	client can search with a key and get the list of products similar to that key
 // @Tags			Products
-// @Accept			json
-// @Produce		    json
-// @Param			page	query  string 	true	"page"
-// @Param			limit	query  string 	true	"limit"
-// @Param			searchkey 	query  string 	true	"searchkey"
+// @Accept		json
+// @Produce		json
+// @Param		page	query  string 	true	"page"
+// @Param		limit	query  string 	true	"limit"
+// @Param		searchkey	query  string 	true	"searchkey"
+// @Param		sortBY	query  string 	false	"sortBY (asc/desc) - Sort by price in ascending (asc) or descending (desc) order"
 // @Success		200	{object}	response.Response{}
-// @Failure		500	{object}	response.Response{}
-// @Router			/products/search [get]
+// @Failure		400	{object}	response.Response{}
+// @Router		/products/search [get]
 func (i *InventoryHandler) SearchProducts(c *gin.Context) {
 	pageStr := c.Query("page")
 	page, err := strconv.Atoi(pageStr)
 	if err != nil {
-		errorRes := response.ClientResponse(http.StatusBadRequest, "page number not in right format", nil, err.Error())
+		errorRes := response.ClientResponse(http.StatusBadRequest, "page number not in the right format", nil, err.Error())
 		c.JSON(http.StatusBadRequest, errorRes)
 		return
 	}
+
 	limitStr := c.Query("limit")
 	limit, err := strconv.Atoi(limitStr)
 	if err != nil {
-		errorRes := response.ClientResponse(http.StatusBadRequest, "limit number not in right format", nil, err.Error())
+		errorRes := response.ClientResponse(http.StatusBadRequest, "limit number not in the right format", nil, err.Error())
 		c.JSON(http.StatusBadRequest, errorRes)
 		return
 	}
-	searchkey := c.Query("searchkey")
-	results, err := i.InventoryUseCase.SearchProducts(searchkey, page, limit)
+
+	searchKey := c.Query("searchkey")
+	sortBY := c.Query("sortBY") // Add this line to get the sorting parameter
+
+	results, err := i.InventoryUseCase.SearchProducts(searchKey, page, limit, sortBY)
 	if err != nil {
 		errorRes := response.ClientResponse(http.StatusBadRequest, "could not retrieve the records", nil, err.Error())
 		c.JSON(http.StatusBadRequest, errorRes)
@@ -165,11 +261,10 @@ func (i *InventoryHandler) SearchProducts(c *gin.Context) {
 // @Produce		    json
 // @Param			page	query  string 	true	"page"
 // @Param			limit	query  string 	true	"limit"
-// @Param			catID 	query  string 	true	"category ID"
 // @Success		200	{object}	response.Response{}
 // @Failure		500	{object}	response.Response{}
 // @Router			/products/category [get]
-func (i *InventoryHandler) GetCategoryProducts(c *gin.Context) {
+func (i *InventoryHandler) GetCategories(c *gin.Context) {
 	pageStr := c.Query("page")
 	page, err := strconv.Atoi(pageStr)
 	if err != nil {
@@ -184,21 +279,21 @@ func (i *InventoryHandler) GetCategoryProducts(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, errorRes)
 		return
 	}
-	catIDstr := c.Query("catID")
-	catID, err := strconv.Atoi(catIDstr)
-	if err != nil {
-		errorRes := response.ClientResponse(http.StatusBadRequest, "category ID not in right format", nil, err.Error())
-		c.JSON(http.StatusBadRequest, errorRes)
-		return
-	}
-	results, err := i.InventoryUseCase.GetCategoryProducts(catID, page, limit)
-	if err != nil {
-		errorRes := response.ClientResponse(http.StatusBadRequest, "could not retrieve the records", nil, err.Error())
-		c.JSON(http.StatusBadRequest, errorRes)
-		return
-	}
+	// catIDstr := c.Query("catID")
+	// catID, err := strconv.Atoi(catIDstr)
+	// if err != nil {
+	// 	errorRes := response.ClientResponse(http.StatusBadRequest, "category ID not in right format", nil, err.Error())
+	// 	c.JSON(http.StatusBadRequest, errorRes)
+	// 	return
+	// }
 
-	successRes := response.ClientResponse(http.StatusOK, "Successfully got all records", results, nil)
+	categories, err := i.InventoryUseCase.GetCategories(page, limit)
+	if err != nil {
+		errorRes := response.ClientResponse(http.StatusBadRequest, "could not retrieve records", nil, err.Error())
+		c.JSON(http.StatusBadRequest, errorRes)
+		return
+	}
+	successRes := response.ClientResponse(http.StatusOK, "Successfully retrieved the categories", categories, nil)
 	c.JSON(http.StatusOK, successRes)
 }
 
@@ -320,6 +415,50 @@ func (i *InventoryHandler) ListProducts(c *gin.Context) {
 		return
 	}
 	products, err := i.InventoryUseCase.ListProducts(page, limit)
+	if err != nil {
+		errorRes := response.ClientResponse(http.StatusBadRequest, "could not retrieve records", nil, err.Error())
+		c.JSON(http.StatusBadRequest, errorRes)
+		return
+	}
+	successRes := response.ClientResponse(http.StatusOK, "Successfully got all records", products, nil)
+	c.JSON(http.StatusOK, successRes)
+}
+
+// @Summary		List Products based on category
+// @Description	client can view the list of available products
+// @Tags			Products
+// @Accept			json
+// @Produce		    json
+// @Param			page	query  string 	true	"page"
+// @Param			limit	query  string 	true	"limit"
+// @Param			catid	query  string 	true	"id"
+// @Security		Bearer
+// @Success		200	{object}	response.Response{}
+// @Failure		500	{object}	response.Response{}
+// @Router			/products/category_details [get]
+func (i *InventoryHandler) GetCategoryProducts(c *gin.Context) {
+	pageStr := c.Query("page")
+	page, err := strconv.Atoi(pageStr)
+	if err != nil {
+		errorRes := response.ClientResponse(http.StatusBadRequest, "page number not in right format", nil, err.Error())
+		c.JSON(http.StatusBadRequest, errorRes)
+		return
+	}
+	limitStr := c.Query("limit")
+	limit, err := strconv.Atoi(limitStr)
+	if err != nil {
+		errorRes := response.ClientResponse(http.StatusBadRequest, "limit number not in right format", nil, err.Error())
+		c.JSON(http.StatusBadRequest, errorRes)
+		return
+	}
+	catidStr := c.Query("catid")
+	catid, err := strconv.Atoi(catidStr)
+	if err != nil {
+		errorRes := response.ClientResponse(http.StatusBadRequest, "catid number not in right format", nil, err.Error())
+		c.JSON(http.StatusBadRequest, errorRes)
+		return
+	}
+	products, err := i.InventoryUseCase.GetCategoryProducts(catid, page, limit)
 	if err != nil {
 		errorRes := response.ClientResponse(http.StatusBadRequest, "could not retrieve records", nil, err.Error())
 		c.JSON(http.StatusBadRequest, errorRes)

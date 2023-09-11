@@ -184,6 +184,15 @@ func (i *userDatabase) EditEmail(id int, email string) error {
 	return nil
 }
 
+func (i *userDatabase) EditUsername(id int, username string) error {
+	err := i.DB.Exec(`update users set username=? where id=?`, username, id).Error
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (i *userDatabase) EditPhone(id int, phone string) error {
 	err := i.DB.Exec(`update users set phone=? where id=?`, phone, id).Error
 	if err != nil {
@@ -322,12 +331,12 @@ func (ad *userDatabase) FindPrice(inventory_id int) (float64, error) {
 
 }
 
-func (ad *userDatabase) FindCategory(inventory_id int) (int, error) {
+func (ad *userDatabase) FindCategory(inventory_id int) (string, error) {
 
-	var category int
+	var category string
 
-	if err := ad.DB.Raw("select category_id from inventories where id=?", inventory_id).Scan(&category).Error; err != nil {
-		return 0, err
+	if err := ad.DB.Raw("select categories.category as category from inventories join categories on inventories.id = inventories.category_id where inventories.id=?", inventory_id).Scan(&category).Error; err != nil {
+		return "", err
 	}
 
 	return category, nil

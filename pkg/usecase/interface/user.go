@@ -13,9 +13,7 @@ type UserUseCase interface {
 	GetUserDetails(id int) (models.UserResponse, error)
 
 	ChangePassword(id int, old string, password string, repassword string) error
-	EditName(id int, name string) error
-	EditEmail(id int, email string) error
-	EditPhone(id int, phone string) error
+	EditUser(id int, userData models.EditUser) error
 
 	GetCartID(userID int) (int, error)
 	GetCart(id, page, limit int) ([]models.GetCart, error)
@@ -23,4 +21,6 @@ type UserUseCase interface {
 	ClearCart(cartID int) error
 	UpdateQuantityAdd(id, inv_id int) error
 	UpdateQuantityLess(id, inv_id int) error
+
+	GetWallet(id, page, limit int) (models.Wallet, error)
 }
