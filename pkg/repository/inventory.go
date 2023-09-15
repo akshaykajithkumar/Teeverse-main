@@ -20,13 +20,27 @@ func NewInventoryRepository(DB *gorm.DB) interfaces.InventoryRepository {
 	}
 }
 
+// func (i *inventoryRepository) AddInventory(inventory models.Inventory, url string) (models.InventoryResponse, error) {
+// 	var inventoryResponse models.InventoryResponse
+// 	query := `
+//     INSERT INTO inventories (category_id,category product_name,description, stock, price, image)
+//     VALUES (?, ?, ?, ?, ?,?) RETURNING id
+// 	`
+// 	i.DB.Raw(query, inventory.CategoryID, inventory.ProductName, inventory.Description, inventory.Stock, inventory.Price, url).Scan(&inventoryResponse.ProductID)
+
+// 	return inventoryResponse, nil
+
+// }
+
 func (i *inventoryRepository) AddInventory(inventory models.Inventory, url string) (models.InventoryResponse, error) {
-	var inventoryResponse models.InventoryResponse
+
 	query := `
-    INSERT INTO inventories (category_id,category product_name,description, stock, price, image)
-    VALUES (?, ?, ?, ?, ?,?) RETURNING id
-	`
-	i.DB.Raw(query, inventory.CategoryID, inventory.ProductName, inventory.Description, inventory.Stock, inventory.Price, url).Scan(&inventoryResponse.ProductID)
+    INSERT INTO inventories (category_id, product_name, description, stock, price, image)
+    VALUES (?, ?, ?, ?, ?, ?);
+    `
+	i.DB.Exec(query, inventory.CategoryID, inventory.ProductName, inventory.Description, inventory.Stock, inventory.Price, url)
+
+	var inventoryResponse models.InventoryResponse
 
 	return inventoryResponse, nil
 

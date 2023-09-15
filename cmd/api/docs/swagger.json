@@ -1739,7 +1739,7 @@
             }
         },
         "/users/cart/updateQuantity/minus": {
-            "post": {
+            "put": {
                 "security": [
                     {
                         "Bearer": []
@@ -1782,7 +1782,7 @@
             }
         },
         "/users/cart/updateQuantity/plus": {
-            "post": {
+            "put": {
                 "security": [
                     {
                         "Bearer": []
@@ -2667,6 +2667,9 @@
             "type": "object",
             "properties": {
                 "discount_rate": {
+                    "type": "integer"
+                },
+                "id": {
                     "type": "integer"
                 },
                 "name": {

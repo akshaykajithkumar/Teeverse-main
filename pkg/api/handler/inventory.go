@@ -74,7 +74,8 @@ func (i *InventoryHandler) AddInventory(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, errorRes)
 		return
 	}
-	imageURL := "http://localhost:1243/assets/" + image.Filename
+	// imageURL := "https://localhost:1243/assets/" + image.Filename
+	imageURL := "https://teeverse.online/assets/" + image.Filename
 	inventory.CategoryID = categoryID
 	inventory.ProductName = product_name
 	inventory.Description = description
@@ -127,7 +128,7 @@ func (i *InventoryHandler) AddImage(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, errorRes)
 		return
 	}
-	imageURL := "http://localhost:1243/assets/" + image.Filename
+	imageURL := "https://teeverse.online/assets/" + image.Filename
 	InventoryResponse, err := i.InventoryUseCase.AddImage(product_id, imageURL)
 	if err != nil {
 		errorRes := response.ClientResponse(http.StatusBadRequest, "Could not add the Inventory image", nil, err.Error())
