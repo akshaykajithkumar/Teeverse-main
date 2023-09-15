@@ -1751,7 +1751,7 @@ const docTemplate = `{
             }
         },
         "/users/cart/updateQuantity/minus": {
-            "post": {
+            "put": {
                 "security": [
                     {
                         "Bearer": []
@@ -1794,7 +1794,7 @@ const docTemplate = `{
             }
         },
         "/users/cart/updateQuantity/plus": {
-            "post": {
+            "put": {
                 "security": [
                     {
                         "Bearer": []
@@ -2679,6 +2679,9 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "discount_rate": {
+                    "type": "integer"
+                },
+                "id": {
                     "type": "integer"
                 },
                 "name": {

@@ -3,6 +3,8 @@ definitions:
     properties:
       discount_rate:
         type: integer
+      id:
+        type: integer
       name:
         type: string
       valid:
@@ -1264,7 +1266,7 @@ paths:
       tags:
       - User
   /users/cart/updateQuantity/minus:
-    post:
+    put:
       consumes:
       - application/json
       description: user can subtract 1 quantity of product from their cart
@@ -1291,7 +1293,7 @@ paths:
       tags:
       - User
   /users/cart/updateQuantity/plus:
-    post:
+    put:
       consumes:
       - application/json
       description: user can add 1 quantity of product to their cart

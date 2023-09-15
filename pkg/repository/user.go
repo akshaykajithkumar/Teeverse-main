@@ -335,9 +335,11 @@ func (ad *userDatabase) FindCategory(inventory_id int) (string, error) {
 
 	var category string
 
-	if err := ad.DB.Raw("select categories.category as category from inventories join categories on inventories.id = inventories.category_id where inventories.id=?", inventory_id).Scan(&category).Error; err != nil {
+	// if err := ad.DB.Raw("select categories.category as category from inventories join categories on inventories.id = inventories.category_id where inventories.id=?", inventory_id).Scan(&category).Error; err != nil {
+	// 	return "", err
+	// }
+	if err := ad.DB.Raw("select categories.category AS category	FROM inventories JOIN categories ON inventories.category_id = categories.id WHERE inventories.id = ?", inventory_id).Scan(&category).Error; err != nil {
 		return "", err
 	}
-
 	return category, nil
 }

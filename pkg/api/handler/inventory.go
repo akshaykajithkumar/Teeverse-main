@@ -74,6 +74,7 @@ func (i *InventoryHandler) AddInventory(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, errorRes)
 		return
 	}
+	// imageURL := "https://localhost:1243/assets/" + image.Filename
 	imageURL := "https://teeverse.online/assets/" + image.Filename
 	inventory.CategoryID = categoryID
 	inventory.ProductName = product_name

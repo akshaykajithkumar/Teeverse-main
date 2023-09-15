@@ -9,6 +9,7 @@ import (
 
 	"gorm.io/gorm"
 )
+
 type orderRepository struct {
 	DB *gorm.DB
 }
@@ -30,10 +31,36 @@ func (o *orderRepository) GetOrders(id, page, limit int) ([]domain.Order, error)
 	offset := (page - 1) * limit
 	var orders []domain.Order
 
-	if err := o.DB.Raw("select * from orders where user_id=? limit ? offset ?", id, limit, offset).Scan(&orders).Error; err != nil {
+	//		if err := o.DB.Raw("select * from orders where user_id=? limit ? offset ?", id, limit, offset).Scan(&orders).Error; err != nil {
+	//			return []domain.Order{}, err
+	//		}
+	//		return orders, nil
+	//	}
+	if err := o.DB.Raw(`
+    SELECT
+        o.id,
+        o.user_id,
+        o.address_id,
+        pm.payment_method AS payment_method,
+        o.payment_id,
+        o.price,
+        o.ordered_at,
+        o.order_status,
+        o.payment_status
+    FROM
+        orders o
+    JOIN
+        payment_methods pm
+    ON
+        o.payment_method_id = pm.id
+    WHERE
+        o.user_id = ?
+    LIMIT ? OFFSET ?;
+`, id, limit, offset).Scan(&orders).Error; err != nil {
 		return []domain.Order{}, err
 	}
 	return orders, nil
+
 }
 
 func (o *orderRepository) GetOrdersInRange(startDate, endDate time.Time) ([]domain.Order, error) {
@@ -138,8 +165,7 @@ func (o *orderRepository) MarkAsPaid(orderID int) error {
 	return nil
 }
 
-
-func (o *orderRepository) AdminOrders(page,limit int,status string) ([]domain.OrderDetails, error) {
+func (o *orderRepository) AdminOrders(page, limit int, status string) ([]domain.OrderDetails, error) {
 	if page == 0 {
 		page = 1
 	}
@@ -148,7 +174,7 @@ func (o *orderRepository) AdminOrders(page,limit int,status string) ([]domain.Or
 	}
 	offset := (page - 1) * limit
 	var orders []domain.OrderDetails
-	if err := o.DB.Raw("SELECT orders.id AS order_id, users.name AS username, CONCAT(addresses.house_name, ' ', addresses.street, ' ', addresses.city) AS address, payment_methods.payment_method AS payment_method, orders.price As total FROM orders JOIN users ON users.id = orders.user_id JOIN addresses ON orders.address_id = addresses.id JOIN payment_methods ON orders.payment_method_id=payment_methods.id WHERE order_status = ? limit ? offset ?", status,limit,offset).Scan(&orders).Error; err != nil {
+	if err := o.DB.Raw("SELECT orders.id AS order_id, users.name AS username, CONCAT(addresses.house_name, ' ', addresses.street, ' ', addresses.city) AS address, payment_methods.payment_method AS payment_method, orders.price As total FROM orders JOIN users ON users.id = orders.user_id JOIN addresses ON orders.address_id = addresses.id JOIN payment_methods ON orders.payment_method_id=payment_methods.id WHERE order_status = ? limit ? offset ?", status, limit, offset).Scan(&orders).Error; err != nil {
 		return []domain.OrderDetails{}, err
 	}
 
