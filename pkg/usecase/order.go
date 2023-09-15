@@ -173,7 +173,7 @@ func (i *orderUseCase) MarkAsPaid(orderID int) error {
 
 func (i *orderUseCase) AdminOrders(page, limit int, status string) ([]domain.OrderDetails, error) {
 
-	if status != "PENDING" && status != "SHIPPED" && status != "CANCELLED" && status != "RETURNED" && status != "DELIVERED" {
+	if status != "PENDING" && status != "SHIPPED" && status != "CANCELED" && status != "RETURNED" && status != "DELIVERED" {
 		return []domain.OrderDetails{}, errors.New("invalid status type")
 
 	}
@@ -405,10 +405,11 @@ func (i *orderUseCase) CancelOrder(id, orderid int) error {
 	if err != nil {
 		return err
 	}
-
-	if status == "CANCELLED" {
+	fmt.Println(status)
+	if status == "CANCELED" {
 		return errors.New("order already cancelled")
 	}
+
 	if status == "DELIVERED" {
 		return errors.New("order already delivered")
 	}
@@ -416,7 +417,7 @@ func (i *orderUseCase) CancelOrder(id, orderid int) error {
 	//or users will also earn money by returning pending orders by opting COD
 
 	if status == "PENDING" || status == "SHIPPED" {
-
+		fmt.Println("status pending")
 		//make order as returned order
 		if err := i.orderRepository.CancelOrder(orderid); err != nil {
 			return err
@@ -425,6 +426,7 @@ func (i *orderUseCase) CancelOrder(id, orderid int) error {
 
 	//checkif alreadypaid
 	paymentStatus, err := i.orderRepository.CheckPaymentStatus(orderid)
+	fmt.Println(paymentStatus)
 	if err != nil {
 		return err
 	}
@@ -433,8 +435,8 @@ func (i *orderUseCase) CancelOrder(id, orderid int) error {
 	}
 
 	//find amount to be credited to user
-	amount, err := i.orderRepository.FindAmountFromOrderID(id)
-	fmt.Println(amount)
+	amount, err := i.orderRepository.FindAmountFromOrderID(orderid)
+	fmt.Println("amount : ", amount)
 	if err != nil {
 		return err
 	}
