@@ -1,0 +1,41 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  annotations:
+    kompose.cmd: kompose convert
+    kompose.version: 1.31.2 (a92241f79)
+  creationTimestamp: null
+  labels:
+    io.kompose.network/teeverse-main-mydb: "true"
+    io.kompose.service: teeverse
+  name: teeverse
+spec:
+  containers:
+    - env:
+        - name: DB_ACCOUNTSID
+          value: AC4d36e1402049c3bcdfa9b1bb877e8500
+        - name: DB_AUTHTOKEN
+          value: 25838793fa88bbfebcf39dd3a75b664d
+        - name: DB_HOST
+          value: postgres
+        - name: DB_NAME
+          value: teeverse
+        - name: DB_PASSWORD
+          value: admin
+        - name: DB_PORT
+          value: "5432"
+        - name: DB_SERVICESID
+          value: VA19ea3037ab71433040c3399655005864
+        - name: DB_USER
+          value: postgres
+        - name: UNIDOC_LICENSE_API_KEY
+          value: 23d5384221d7c2096ba5ae729864c1af8a6a1b8d73b1b9d205a4107edf8feada
+      image: akshaykajithkumar/teeverse:latest
+      name: teeverse
+      ports:
+        - containerPort: 1243
+          hostPort: 1243
+          protocol: TCP
+      resources: {}
+  restartPolicy: OnFailure
+status: {}

@@ -1,0 +1,43 @@
+version: "3.9"
+services:
+  postgres:
+    image: postgres:latest
+    restart: always
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "admin"
+      POSTGRES_DB: "teeverse"
+    networks:
+      - mydb
+    ports:
+      - "5434:5432"  # Map container's port 5432 to host's port 5433
+    volumes:
+      - database-postgres:/var/lib/postgresql/data
+
+  teeverse:
+    image: teeverse:latest
+    restart: on-failure
+    environment:
+      DB_HOST: "postgres"  # Corrected to specify the service name "postgres"
+      DB_NAME: "teeverse"
+      DB_USER: "postgres"
+      DB_PORT: "5432"
+      DB_PASSWORD: "admin"
+      DB_ACCOUNTSID: "AC4d36e1402049c3bcdfa9b1bb877e8500"
+      DB_SERVICESID: "VA19ea3037ab71433040c3399655005864"
+      DB_AUTHTOKEN: "25838793fa88bbfebcf39dd3a75b664d"
+      UNIDOC_LICENSE_API_KEY: "23d5384221d7c2096ba5ae729864c1af8a6a1b8d73b1b9d205a4107edf8feada"
+    depends_on:
+      - postgres
+    networks:
+      - mydb
+    ports:
+      - "1243:1243"
+
+volumes:
+  database-postgres:
+
+networks:
+  mydb:
+    driver: bridge
+
