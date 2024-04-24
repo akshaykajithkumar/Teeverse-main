@@ -48,7 +48,7 @@ func NewServerHTTP(categoryHandler *handler.CategoryHandler, inventoryHandler *h
 Start starts the HTTP server and listens on port 1243.
 */
 func (sh *ServerHTTP) Start() {
-	sh.engine.Run(":1243")
+	sh.engine.Run(":1233")
 
 	// if err != nil {
 	//   log.Fatal("ListenAndServeTLS: ", err)

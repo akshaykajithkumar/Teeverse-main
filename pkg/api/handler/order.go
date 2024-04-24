@@ -41,6 +41,7 @@ func (i *OrderHandler) GetOrders(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, errorRes)
 		return
 	}
+
 	limitStr := c.Query("limit")
 	limit, err := strconv.Atoi(limitStr)
 	if err != nil {
@@ -48,14 +49,10 @@ func (i *OrderHandler) GetOrders(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, errorRes)
 		return
 	}
+
 	id, err := helper.GetUserID(c)
 	if err != nil {
 		errorRes := response.ClientResponse(http.StatusBadRequest, "Could not get userID", nil, err.Error())
-		c.JSON(http.StatusBadRequest, errorRes)
-		return
-	}
-	if err != nil {
-		errorRes := response.ClientResponse(http.StatusBadRequest, "check your id again", nil, err.Error())
 		c.JSON(http.StatusBadRequest, errorRes)
 		return
 	}
@@ -66,6 +63,7 @@ func (i *OrderHandler) GetOrders(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, errorRes)
 		return
 	}
+
 	successRes := response.ClientResponse(http.StatusOK, "Successfully got all records", orders, nil)
 	c.JSON(http.StatusOK, successRes)
 }
@@ -82,7 +80,6 @@ func (i *OrderHandler) GetOrders(c *gin.Context) {
 // @Failure		500	{object}	response.Response{}
 // @Router			/users/check-out/order [post]
 func (i *OrderHandler) OrderItemsFromCart(c *gin.Context) {
-
 	userID, err := helper.GetUserID(c)
 	if err != nil {
 		errorRes := response.ClientResponse(http.StatusBadRequest, "Could not get userID", nil, err.Error())
@@ -91,23 +88,23 @@ func (i *OrderHandler) OrderItemsFromCart(c *gin.Context) {
 	}
 
 	coupon := c.Query("coupon")
-	if err != nil {
-		errorRes := response.ClientResponse(http.StatusBadRequest, "conversion to integer not possible", nil, err.Error())
+	// Move this check here
+	if coupon == "" {
+		errorRes := response.ClientResponse(http.StatusBadRequest, "Coupon is required", nil, "")
 		c.JSON(http.StatusBadRequest, errorRes)
 		return
 	}
 
 	var order models.Order
 	if err := c.BindJSON(&order); err != nil {
-		errorRes := response.ClientResponse(http.StatusBadRequest, "fields provided are in wrong format", nil, err.Error())
+		errorRes := response.ClientResponse(http.StatusBadRequest, "Fields provided are in wrong format", nil, err.Error())
 		c.JSON(http.StatusBadRequest, errorRes)
 		return
 	}
 
-	//move
 	retString, err := i.orderUseCase.OrderItemsFromCart(userID, order, coupon)
 	if err != nil {
-		errorRes := response.ClientResponse(http.StatusBadRequest, "could not make the order", nil, err.Error())
+		errorRes := response.ClientResponse(http.StatusBadRequest, "Could not make the order", nil, err.Error())
 		c.JSON(http.StatusBadRequest, errorRes)
 		return
 	}
